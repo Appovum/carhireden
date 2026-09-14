@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CouponPilot — Changelog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper:#F7F5F0;--paper2:#EFEBE3;--white:#FFFFFF;--ink:#1A1A1F;--ink2:#2E2E33;
+  --rule:#D8D5CE;--money:#0E8A5F;--money-bg:#E3F0EA;--urgent:#D94A2B;--urgent-bg:#FAE7E2;
+  --muted:#7A766D;--accent:#3B6BF5;--accent-bg:#EAF0FF;
+  --display:"Space Grotesk",system-ui,sans-serif;--body:"DM Sans",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --radius:10px;--radius-lg:14px;
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.03);
+  --transition:.2s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"]{
+  --paper:#141416;--paper2:#1E1E22;--white:#222226;--ink:#EDEAE4;--ink2:#C8C5BE;
+  --rule:#2E2E33;--muted:#8F8D86;--accent-bg:#1C2640;--money-bg:#14312A;--urgent-bg:#3A1E18;
+  --shadow:0 1px 3px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+::selection{background:var(--accent);color:#fff}
+
+/* Header */
+.header{position:sticky;top:0;z-index:100;background:var(--paper);border-bottom:1px solid var(--rule);padding:0 40px;height:64px;display:flex;align-items:center;backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.mark{width:34px;height:24px;border:2.5px solid currentColor;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.mark span{width:8px;height:8px;border:2.5px solid currentColor;border-radius:50%}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.version-badge{font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:4px 10px;border-radius:5px;background:var(--money-bg);color:var(--money);font-weight:500}
+.theme-toggle{width:38px;height:38px;border-radius:8px;border:1px solid var(--rule);background:var(--white);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all var(--transition)}
+.theme-toggle:hover{background:var(--paper2)}
+.back-link{font-size:14px;color:var(--muted);text-decoration:none;transition:color var(--transition)}
+.back-link:hover{color:var(--ink)}
+
+/* Hero */
+.hero{background:var(--ink);color:var(--paper);padding:72px 40px;position:relative;overflow:hidden}
+.hero-inner{position:relative;max-width:900px;margin:0 auto}
+.hero h1{font-family:var(--display);font-weight:700;font-size:48px;line-height:1.1;letter-spacing:-.028em;margin-bottom:16px}
+.hero .lede{font-size:19px;line-height:1.6;color:#a8a69e;max-width:56ch}
+
+/* Content */
+.content{max-width:900px;margin:0 auto;padding:48px 40px 80px}
+
+/* Release Block */
+.release{margin-bottom:56px;position:relative;padding-left:36px}
+.release::before{content:"";position:absolute;left:11px;top:36px;bottom:-40px;width:2px;background:var(--rule)}
+.release:last-child::before{display:none}
+.release-dot{position:absolute;left:4px;top:8px;width:18px;height:18px;border-radius:50%;border:3px solid var(--accent);background:var(--paper)}
+.release.latest .release-dot{background:var(--accent);border-color:var(--accent)}
+
+.release-header{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.release-version{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:-.02em}
+.release-date{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.06em}
+.release-tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:5px;font-weight:500}
+.release-tag.latest{background:var(--money-bg);color:var(--money)}
+.release-tag.beta{background:var(--accent-bg);color:var(--accent)}
+
+.change-group{margin-bottom:24px}
+.change-group-title{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.change-group-title .badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-size:12px;font-weight:700}
+.badge-added{background:var(--money-bg);color:var(--money)}
+.badge-changed{background:var(--accent-bg);color:var(--accent)}
+.badge-fixed{background:var(--urgent-bg);color:var(--urgent)}
+.badge-security{background:#FFF3E0;color:#E65100}
+
+.change-list{list-style:none;margin:0;padding:0}
+.change-list li{position:relative;padding:10px 16px;margin-bottom:6px;background:var(--white);border:1px solid var(--rule);border-radius:var(--radius);font-size:14px;color:var(--ink2);transition:all var(--transition);cursor:default}
+.change-list li:hover{box-shadow:var(--shadow);transform:translateX(4px)}
+.change-list li code{font-family:var(--mono);font-size:.85em;padding:1px 6px;background:var(--paper2);border-radius:4px;border:1px solid var(--rule)}
+.change-list li strong{color:var(--ink);font-weight:600}
+
+/* Footer */
+.footer{text-align:center;padding:40px;border-top:1px solid var(--rule);color:var(--muted);font-size:14px}
+
+@media(max-width:700px){
+  .hero{padding:48px 20px}
+  .hero h1{font-size:32px}
+  .content{padding:32px 20px 60px}
+  .release{padding-left:28px}
+  .release-header{flex-direction:column;gap:8px}
+  .release-version{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="documentation.html" class="back-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Docs</a>
+  <a href="#" class="brand" style="margin-left:16px">
+    <span class="mark"><span></span></span>
+    CouponPilot
+  </a>
+  <div class="header-right">
+    <span class="version-badge">Changelog</span>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Changelog</h1>
+    <p class="lede">A detailed record of every feature, fix, and improvement across all CouponPilot releases. We follow <a href="https://semver.org" target="_blank" style="color:var(--accent)">Semantic Versioning</a>.</p>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ═══════════ v1.0.0 ═══════════ -->
+  <div class="release latest">
+    <div class="release-dot"></div>
+    <div class="release-header">
+      <span class="release-version">1.0.0</span>
+      <span class="release-date">2026-08-04</span>
+      <span class="release-tag latest">Latest Release</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-added"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Added</div>
+      <ul class="change-list">
+        <li><strong>Project foundation</strong> — Next.js 16 App Router with TypeScript, Tailwind CSS 4, and Prisma ORM.</li>
+        <li><strong>Referral bonus system</strong> — Automated configurable referral bonus (default $5) for referrers when their referred user's first cashback confirms. Enhanced referral code matching during signup.</li>
+        <li><strong>Store deletion &amp; bulk actions</strong> — Full CRUD with bulk activate, deactivate, and delete across all admin dashboards. Universal <code>ConfirmModal</code> component.</li>
+        <li><strong>Advertiser portal</strong> — Comprehensive portal with payment tracking, campaign management (Awaiting Creative → Pending Review → Scheduled → Live → Completed), and automated approval workflows.</li>
+        <li><strong>Admin modules</strong> — Alerts, referrals, custom pages, and public contact form with API support. Complete admin coverage for every entity type.</li>
+        <li><strong>Middleware authentication</strong> — Edge-based auth protection for <code>/admin</code>, <code>/account</code>, <code>/wallet</code>, <code>/withdraw</code>, and all admin API routes.</li>
+        <li><strong>Network sync APIs</strong> — Live Awin and CJ Affiliate connectors with <code>fetchOffers()</code>, <code>fetchConversions(since)</code>, <code>testCredentials()</code>, and <code>mapToCoupon()</code>.</li>
+        <li><strong>Ad banner system</strong> — Header, sidebar, in-feed, and store page ad slots with image, AdSense, and custom HTML creatives. Impression and click tracking with CTR.</li>
+        <li><strong>Cashback ledger</strong> — Append-only wallet with <code>cashback_pending</code>, <code>cashback_confirmed</code>, <code>cashback_declined</code>, <code>withdrawal_*</code>, <code>referral_bonus</code>, and <code>adjustment</code> entry types.</li>
+        <li><strong>Click attribution</strong> — <code>/go/[clickId]</code> redirect route with SubID tracking, bot filtering, dual link strategies (template + append_subid), and anonymous click claiming.</li>
+        <li><strong>Feed normalization</strong> — Discount parser, code extraction, category normalizer, merchant mapper, logo processor, deduplication, and per-store diversity caps.</li>
+        <li><strong>Payment gateways</strong> — Stripe and PayPal integration with signature-verified webhooks for ad sales and featured placements.</li>
+        <li><strong>SEO infrastructure</strong> — Dynamic sitemap, JSON-LD (Offer, AggregateRating, FAQPage, BreadcrumbList, Organization), meta templates with variables, and on-demand ISR revalidation.</li>
+        <li><strong>Notification system</strong> — Email adapter layer (SMTP, Brevo, Resend), Telegram channel poster, weekly digest, and transactional email templates.</li>
+        <li><strong>Security</strong> — AES-256-GCM encryption at rest, CSRF protection, rate limiting (login, vote, claim, withdrawal, redirect), Zod schema validation, and IP hashing.</li>
+        <li><strong>GDPR compliance</strong> — Data export, account deletion, cookie consent gate, and editable affiliate disclosure component.</li>
+        <li><strong>Docker deployment</strong> — Production Dockerfile with multi-stage build and <code>docker-compose.yml</code> with PostgreSQL 16.</li>
+        <li><strong>Web installer</strong> — Guided setup wizard at <code>/install</code> for database configuration, admin account creation, and initial branding.</li>
+        <li><strong>Sample dataset</strong> — Sample dataset with stores, coupons, categories, and ad creatives for immediate demo readiness.</li>
+        <li><strong>Dark mode</strong> — System-aware toggle with localStorage persistence, affecting all public and admin pages.</li>
+        <li><strong>Audit logging</strong> — Complete admin action trail with actor, action, resource, before/after diff, and IP address.</li>
+        <li><strong>i18n support</strong> — Full internationalization string manager with export/import capabilities.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-changed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg></span> Changed</div>
+      <ul class="change-list">
+        <li><strong>Payout configurations</strong> — Transitioned to dynamic payout configs with improved wallet balance calculation accuracy using ledger summation.</li>
+        <li><strong>Withdrawal workflow</strong> — Moved from inline withdrawal requests to a dedicated withdrawal page with form, pending status management, and admin approval flow.</li>
+        <li><strong>Loading states</strong> — Consolidated all admin page loading into <code>AdminTable</code> component with global loading component.</li>
+        <li><strong>Alert query optimization</strong> — Optimized claim submission UI with real-time updates and refined input validation using Zod schemas.</li>
+        <li><strong>App shell architecture</strong> — Implemented <code>AppShell</code> component, removed redundant Header/Footer from individual route pages for consistent layout.</li>
+        <li><strong>Store logos</strong> — Updated <code>StoreLogo</code> with domain-based favicon auto-fetching. Redesigned navigation with category overflow menu.</li>
+        <li><strong>Ad banner styling</strong> — Standardized all ad banner and category header styling using theme-based design tokens.</li>
+        <li><strong>Admin panel redesign</strong> — Complete visual overhaul with SVG line icons, sentence case titles, neutral sparklines, 90-day organic analytics charts, and real brand dataset.</li>
+        <li><strong>Dashboard density</strong> — Improved information density with dynamic period metric cards, sorted action queues, and activity feed.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-fixed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Fixed</div>
+      <ul class="change-list">
+        <li>Decoded HTML entities in category names within header navigation.</li>
+        <li>Resolved Prisma type mismatch in bulk operations, updated build script to generate Prisma client before build.</li>
+        <li>Added robust fallback data provider and try-catch guards to eliminate 500 errors on Vercel deployments.</li>
+        <li>Resolved Vercel build error by providing fallback <code>DATABASE_URL</code> and sitemap try-catch guard.</li>
+        <li>Restored sign out button and created distinct collapse bar in sidebar footer.</li>
+        <li>Calibrated urgent badge threshold, corrected sidebar sentence case, fixed neutral sparkline colors and import labels.</li>
+        <li>Fixed real brand dataset variance, dual-axis chart rendering, restrained green styling, and math calculation errors.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-security"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span> Security</div>
+      <ul class="change-list">
+        <li>All network API credentials encrypted at rest with AES-256-GCM using the <code>APP_SECRET</code> master key.</li>
+        <li>User payout details (bank accounts, PayPal emails) encrypted at rest.</li>
+        <li>Session cookies set as HTTP-only, secure, with SameSite=Lax.</li>
+        <li>Rate limiting implemented on all sensitive endpoints (login, voting, claims, withdrawals, redirects).</li>
+        <li>CSRF token validation on all mutation endpoints.</li>
+        <li>Bot detection and filtering on the click redirect route.</li>
+        <li>IP addresses stored as SHA-256 hashes, never raw values.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <p><strong>CouponPilot</strong> · Version 1.0.0</p>
+  <p style="margin-top:6px">© 2026 CouponPilot. All rights reserved.</p>
+</footer>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
+  h.setAttribute('data-theme',n);localStorage.setItem('cp-doc-theme',n);
+  document.querySelector('.theme-toggle').textContent=n==='dark'?'☀':'◑';
+}
+(function(){const s=localStorage.getItem('cp-doc-theme');if(s){document.documentElement.setAttribute('data-theme',s);if(s==='dark')document.querySelector('.theme-toggle').textContent='☀'}})();
+</script>
+</body>
+</html>

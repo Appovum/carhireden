@@ -1,0 +1,26 @@
+[
+  {
+    "linkId": "cj_link_501",
+    "advertiserId": "3001",
+    "advertiserName": "Target Brands",
+    "linkName": "$15 OFF Purchases over $100",
+    "description": "Save $15 at checkout when spending $100 or more.",
+    "couponCode": "SAVE15NOW",
+    "clickUrl": "https://www.anrdoezrs.net/click-555111-3001?url=https%3A%2F%2Ftarget.com",
+    "promotionStartDate": "2026-05-01T00:00:00Z",
+    "promotionEndDate": "2026-11-30T23:59:59Z",
+    "promotionType": "coupon"
+  },
+  {
+    "linkId": "cj_link_502",
+    "advertiserId": "3002",
+    "advertiserName": "Best Buy Electronics",
+    "linkName": "30% OFF Clearance Laptops",
+    "description": "Huge discounts on open-box and clearance laptops.",
+    "couponCode": null,
+    "clickUrl": "https://www.anrdoezrs.net/click-555111-3002?url=https%3A%2F%2Fbestbuy.com",
+    "promotionStartDate": "2026-07-01T00:00:00Z",
+    "promotionEndDate": null,
+    "promotionType": "sale"
+  }
+]

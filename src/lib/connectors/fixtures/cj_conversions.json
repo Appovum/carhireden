@@ -1,0 +1,24 @@
+[
+  {
+    "actionTrackerId": "cj_tx_8801",
+    "cid": "3001",
+    "advertiserName": "Target Brands",
+    "pubCommissionAmountPubCurrency": 15.00,
+    "saleAmountPubCurrency": 150.00,
+    "pubCurrency": "USD",
+    "actionStatus": "posted",
+    "sid": "click_cj_test_301",
+    "eventDate": "2026-08-01T18:45:00Z"
+  },
+  {
+    "actionTrackerId": "cj_tx_8802",
+    "cid": "3002",
+    "advertiserName": "Best Buy Electronics",
+    "pubCommissionAmountPubCurrency": 45.00,
+    "saleAmountPubCurrency": 450.00,
+    "pubCurrency": "USD",
+    "actionStatus": "locked",
+    "sid": "click_cj_test_302",
+    "eventDate": "2026-08-02T11:20:00Z"
+  }
+]

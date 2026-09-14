@@ -1,0 +1,28 @@
+[
+  {
+    "promotionId": 100501,
+    "advertiserId": 7001,
+    "advertiserName": "Nike Store",
+    "title": "20% OFF Summer Sneakers Collection",
+    "description": "Get 20% off all selected summer sneakers with promo code SUMMER20",
+    "code": "SUMMER20",
+    "type": "voucher",
+    "deeplink": "https://www.awin1.com/cread.php?awinmid=7001&awinaffid=123456&ued=https%3A%2F%2Fnike.com%2Fsummer",
+    "startDate": "2026-06-01T00:00:00Z",
+    "endDate": "2026-12-31T23:59:59Z",
+    "terms": "Valid for registered accounts only."
+  },
+  {
+    "promotionId": 100502,
+    "advertiserId": 7002,
+    "advertiserName": "Adidas Global",
+    "title": "Free Express Shipping on Orders Over $50",
+    "description": "Automatic free express delivery applied at checkout.",
+    "code": null,
+    "type": "promotion",
+    "deeplink": "https://www.awin1.com/cread.php?awinmid=7002&awinaffid=123456&ued=https%3A%2F%2Fadidas.com%2Fshipping",
+    "startDate": "2026-01-01T00:00:00Z",
+    "endDate": "2027-01-01T00:00:00Z",
+    "terms": null
+  }
+]

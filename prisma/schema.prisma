@@ -1,0 +1,477 @@
+// ═══════════════════════════════════════════════════════════════════
+// CouponPilot — Prisma Schema
+// Database model supporting 19 core entities, append-only ledger,
+// dedupe hashes, and minor-unit currency storage.
+// ═══════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// ── Enums ──────────────────────────────────────────────────────────
+
+enum CouponType {
+  code
+  deal
+  cashback
+}
+
+enum CouponStatus {
+  active
+  expiring
+  expired
+  draft
+  rejected
+}
+
+enum ImportRunStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+enum ConversionStatus {
+  pending
+  confirmed
+  declined
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum WalletEntryType {
+  cashback_pending
+  cashback_confirmed
+  cashback_declined
+  withdrawal_requested
+  withdrawal_approved
+  withdrawal_rejected
+  referral_bonus
+  adjustment
+}
+
+enum LedgerBucket {
+  pending
+  confirmed
+  paid
+}
+
+enum WithdrawalStatus {
+  requested
+  approved
+  rejected
+  paid
+}
+
+// ── Models ─────────────────────────────────────────────────────────
+
+model Store {
+  id                        String          @id @default(cuid())
+  name                      String
+  slug                      String          @unique
+  domain                    String
+  logoUrl                   String?
+  description               String?
+  affiliateNetworkId        String?
+  merchantId                String?
+  rawDestinationUrl         String
+  defaultCashbackRate       String?
+  defaultCashbackPercentage Float?
+  isFeatured                Boolean         @default(false)
+  featuredUntil             DateTime?
+  isActive                  Boolean         @default(true)
+  totalCoupons              Int             @default(0)
+  successRate               Float           @default(100.0)
+  metaTitle                 String?
+  metaDescription           String?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+
+  categories                StoreCategory[]
+  coupons                   Coupon[]
+  clicks                    Click[]
+  conversions               Conversion[]
+  alerts                    Alert[]
+  featuredOrders            FeaturedOrder[]
+
+  @@map("stores")
+}
+
+model Category {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String          @unique
+  icon        String?
+  description String?
+  parentId    String?
+  parent      Category?       @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[]      @relation("CategoryHierarchy")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  stores      StoreCategory[]
+
+  @@map("categories")
+}
+
+model StoreCategory {
+  storeId    String
+  categoryId String
+  store      Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([storeId, categoryId])
+  @@map("store_categories")
+}
+
+model Coupon {
+  id             String          @id @default(cuid())
+  storeId        String
+  store          Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  networkId      String?
+  network        Network?        @relation(fields: [networkId], references: [id])
+  importSourceId String?
+  importSource   ImportSource?   @relation(fields: [importSourceId], references: [id])
+  type           CouponType      @default(code)
+  status         CouponStatus    @default(active)
+  code           String?
+  title          String
+  description    String?
+  discountText   String
+  discountType   String?
+  discountValue  Float?
+  destinationUrl String?
+  dedupeHash     String          @unique
+  successRate    Float           @default(100.0)
+  usedCount      Int             @default(0)
+  usedTodayCount Int             @default(0)
+  verifiedAt     DateTime        @default(now())
+  expiresAt      DateTime?
+  cashbackRate   String?
+  isExclusive    Boolean         @default(false)
+  isFeatured     Boolean         @default(false)
+  featuredUntil  DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  votes          CouponVote[]
+  clicks         Click[]
+  featuredOrders FeaturedOrder[]
+
+  // Hot path index for store coupon lookup by status and expiration
+  @@index([storeId, status, expiresAt])
+  @@index([status, expiresAt])
+  @@map("coupons")
+}
+
+model CouponVote {
+  id        String   @id @default(cuid())
+  couponId  String
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  ipHash    String
+  voteType  String   // "up" | "down"
+  createdAt DateTime @default(now())
+
+  @@unique([couponId, userId])
+  @@index([couponId])
+  @@map("coupon_votes")
+}
+
+model Network {
+  id                      String         @id @default(cuid())
+  name                    String
+  slug                    String         @unique
+  isEnabled               Boolean        @default(true)
+  linkTemplate            String
+  apiCredentialsEncrypted String?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+
+  importSources           ImportSource[]
+  coupons                 Coupon[]
+  clicks                  Click[]
+  conversions             Conversion[]
+
+  @@map("networks")
+}
+
+model ImportSource {
+  id              String      @id @default(cuid())
+  networkId       String
+  network         Network     @relation(fields: [networkId], references: [id], onDelete: Cascade)
+  name            String
+  feedUrl         String?
+  configEncrypted String?
+  autoSync        Boolean     @default(true)
+  lastSyncedAt    DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  coupons         Coupon[]
+  importRuns      ImportRun[]
+
+  @@map("import_sources")
+}
+
+model ImportRun {
+  id              String          @id @default(cuid())
+  importSourceId  String
+  importSource    ImportSource    @relation(fields: [importSourceId], references: [id], onDelete: Cascade)
+  status          ImportRunStatus @default(pending)
+  itemsProcessed  Int             @default(0)
+  itemsInserted   Int             @default(0)
+  itemsUpdated    Int             @default(0)
+  itemsFailed     Int             @default(0)
+  errorsJson      String?
+  startedAt       DateTime        @default(now())
+  completedAt     DateTime?
+
+  @@map("import_runs")
+}
+
+model Click {
+  id                String       @id @default(cuid())
+  couponId          String?
+  coupon            Coupon?      @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  storeId           String
+  store             Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  networkId         String?
+  network           Network?     @relation(fields: [networkId], references: [id], onDelete: Cascade)
+  subId             String
+  ipHash            String
+  userAgent         String?
+  referer           String?
+  botScore          Float        @default(0.0)
+  isBot             Boolean      @default(false)
+  rawDestinationUrl String
+  finalUrl          String
+  userId            String?
+  user              User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt         DateTime     @default(now())
+
+  conversions       Conversion[]
+
+  @@index([subId])
+  @@index([storeId])
+  @@index([userId])
+  @@map("clicks")
+}
+
+model Conversion {
+  id                   String           @id @default(cuid())
+  clickId              String?
+  click                Click?           @relation(fields: [clickId], references: [id], onDelete: Cascade)
+  storeId              String
+  store                Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  networkId            String
+  network              Network          @relation(fields: [networkId], references: [id], onDelete: Cascade)
+  networkTransactionId String
+  amountMinor          Int              // Purchase amount in minor units
+  commissionMinor      Int              // Platform commission in minor units
+  cashbackMinor        Int              // User cashback in minor units
+  currency             String           @default("USD")
+  status               ConversionStatus @default(pending)
+  transactionDate      DateTime
+  confirmedDate        DateTime?
+  rawDataJson          String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  walletEntries        WalletEntry[]
+
+  // Hot path index for deduplicating network transaction IDs per network
+  @@unique([networkId, networkTransactionId])
+  @@index([clickId])
+  @@index([storeId])
+  @@index([status])
+  @@map("conversions")
+}
+
+model User {
+  id              String        @id @default(cuid())
+  email           String        @unique
+  passwordHash    String?
+  name            String?
+  role            UserRole      @default(user)
+  emailVerifiedAt DateTime?
+  googleId        String?       @unique
+  avatarUrl       String?
+  referralCode    String        @unique @default(cuid())
+  referredById    String?
+  referredBy      User?         @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals       User[]        @relation("UserReferrals")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  walletEntries   WalletEntry[]
+  withdrawals     Withdrawal[]
+  votes           CouponVote[]
+  clicks          Click[]
+  alerts          Alert[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+model WalletEntry {
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversionId String?
+  conversion   Conversion?     @relation(fields: [conversionId], references: [id])
+  withdrawalId String?
+  withdrawal   Withdrawal?     @relation(fields: [withdrawalId], references: [id])
+  type         WalletEntryType
+  bucket       LedgerBucket
+  amountMinor  Int             // Signed minor units (can be positive or negative)
+  currency     String          @default("USD")
+  description  String
+  metadataJson String?
+  createdAt    DateTime        @default(now())
+
+  // Hot path index for fast user balance summation by bucket
+  @@index([userId, bucket])
+  @@index([userId])
+  @@map("wallet_entries")
+}
+
+model Withdrawal {
+  id                    String           @id @default(cuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountMinor           Int              // Minor units requested
+  currency              String           @default("USD")
+  payoutMethod          String
+  payoutDetailsEncrypted String
+  status                WithdrawalStatus @default(requested)
+  approvedAt            DateTime?
+  paidAt                DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  walletEntries         WalletEntry[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("withdrawals")
+}
+
+model AdSlot {
+  id           String       @id @default(cuid())
+  name         String
+  positionSlug String       @unique
+  isEnabled    Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  creatives    AdCreative[]
+
+  @@map("ad_slots")
+}
+
+model AdCreative {
+  id              String          @id @default(cuid())
+  adSlotId        String
+  adSlot          AdSlot          @relation(fields: [adSlotId], references: [id], onDelete: Cascade)
+  title           String
+  type            String          @default("image") // "image" | "adsense" | "custom_html"
+  imageUrl        String?
+  targetUrl       String?
+  htmlContent     String?
+  isEnabled       Boolean         @default(true)
+  impressionCount Int             @default(0)
+  clickCount      Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  featuredOrders  FeaturedOrder[]
+
+  @@map("ad_creatives")
+}
+
+model FeaturedOrder {
+  id              String      @id @default(cuid())
+  storeId         String?
+  store           Store?      @relation(fields: [storeId], references: [id])
+  couponId        String?
+  coupon          Coupon?     @relation(fields: [couponId], references: [id])
+  adCreativeId    String?
+  adCreative      AdCreative? @relation(fields: [adCreativeId], references: [id])
+  placementKind   String      @default("boost") // "boost" | "banner"
+  planType        String
+  paymentGateway  String?     @default("stripe")
+  paymentStatus   String      @default("pending") // "pending" | "paid" | "refunded" | "failed"
+  campaignStatus  String      @default("pending_review") // "awaiting_creative" | "pending_review" | "scheduled" | "live" | "completed" | "rejected"
+  advertiserEmail     String      @default("advertiser@couponpilot.com")
+  brandName           String?
+  magicToken          String?     @unique
+  magicTokenExpiresAt DateTime?
+  durationDays        Int         @default(7)
+  startsAt            DateTime
+  endsAt              DateTime
+  priceMinor          Int
+  currency            String      @default("USD")
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@map("featured_orders")
+}
+
+model Subscriber {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  isVerified        Boolean  @default(false)
+  verificationToken String?
+  createdAt         DateTime @default(now())
+
+  @@map("subscribers")
+}
+
+model Alert {
+  id             String   @id @default(cuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id])
+  storeId        String
+  store          Store    @relation(fields: [storeId], references: [id])
+  email          String
+  targetDiscount String?
+  isEnabled      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  @@map("alerts")
+}
+
+model Setting {
+  key         String   @id
+  valueJson   String
+  category    String   @default("general")
+  isEncrypted Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String
+  resource    String
+  resourceId  String?
+  detailsJson String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@map("audit_log")
+}

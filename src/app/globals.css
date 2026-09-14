@@ -1,0 +1,302 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════
+   CouponPilot — Design Tokens
+   Every color, type value, and structural device derives from here.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Color tokens ─────────────────────────────────────────────────── */
+:root {
+  --paper: #F7F5F0;
+  --ink: #1A1A1F;
+  --rule: #D8D5CE;
+  --money: #0E8A5F;
+  --urgent: #D94A2B;
+  --muted: #7A766D;
+
+  /* Derived surfaces */
+  --paper-raised: #FFFFFF;
+  --paper-sunken: #EFECE5;
+  --rule-strong: #C5C1B8;
+
+  /* Functional */
+  --focus-ring: #3B82F6;
+  --overlay: rgba(26, 26, 31, 0.5);
+
+  color-scheme: light dark;
+}
+
+/* Dark mode: paper becomes deep ink, signals hold meaning */
+.dark,
+[data-theme="dark"] {
+  --paper: #141418;
+  --ink: #E8E6E1;
+  --rule: #2E2E33;
+  --money: #2EBF7B;
+  --urgent: #F06848;
+  --muted: #8A8880;
+
+  --paper-raised: #1C1C22;
+  --paper-sunken: #0E0E12;
+  --rule-strong: #3E3E45;
+
+  --overlay: rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #141418;
+    --ink: #E8E6E1;
+    --rule: #2E2E33;
+    --money: #2EBF7B;
+    --urgent: #F06848;
+    --muted: #8A8880;
+
+    --paper-raised: #1C1C22;
+    --paper-sunken: #0E0E12;
+    --rule-strong: #3E3E45;
+
+    --overlay: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ── Tailwind v4 theme integration ────────────────────────────────── */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-paper-sunken: var(--paper-sunken);
+  --color-ink: var(--ink);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-money: var(--money);
+  --color-urgent: var(--urgent);
+  --color-muted: var(--muted);
+  --color-focus-ring: var(--focus-ring);
+  --color-overlay: var(--overlay);
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-code: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Type scale — intentional gaps between hierarchy levels */
+  --text-display-xl: 3rem;       /* 48px — hero discount on desktop */
+  --text-display-lg: 2.25rem;    /* 36px — large discount */
+  --text-display-md: 1.75rem;    /* 28px — medium discount */
+  --text-display-sm: 1.5rem;     /* 24px — small discount */
+  --text-body-lg: 1.125rem;      /* 18px — prominent body */
+  --text-body-md: 1rem;          /* 16px — default body */
+  --text-body-sm: 0.875rem;      /* 14px — secondary */
+  --text-body-xs: 0.75rem;       /* 12px — captions */
+  --text-code-lg: 1.5rem;        /* 24px — revealed coupon code */
+  --text-code-md: 1.125rem;      /* 18px — inline code */
+  --text-code-sm: 0.8125rem;     /* 13px — small code */
+
+  /* Spacing for density */
+  --spacing-row: 0.75rem;
+
+  /* Animation tokens */
+  --duration-tear: 400ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-tear: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Keyframes */
+  --animate-tear-stub: tear-stub var(--duration-tear) var(--ease-tear) forwards;
+  --animate-fade-in: fade-in var(--duration-normal) ease-out forwards;
+  --animate-pulse-skeleton: pulse-skeleton 1.8s ease-in-out infinite;
+  --animate-copy-confirm: copy-confirm var(--duration-fast) ease-out forwards;
+}
+
+/* ── Keyframes ────────────────────────────────────────────────────── */
+@keyframes tear-stub {
+  0% {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translateX(12px);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-skeleton {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes copy-confirm {
+  0% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Base styles ──────────────────────────────────────────────────── */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body-md);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Input autofill override ─────────────────────────────────────── */
+/* Prevents browser autofill from showing dark grey/blue backgrounds */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--paper-sunken) inset !important;
+  -webkit-text-fill-color: var(--ink) !important;
+  caret-color: var(--ink) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ── Focus styles ─────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Remove default focus ring for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Perforation pattern (dashed vertical border for voucher stubs) ─ */
+.perforation {
+  border-right: 2px dashed var(--rule);
+  position: relative;
+}
+
+.perforation::before,
+.perforation::after {
+  content: "";
+  position: absolute;
+  right: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.perforation::before {
+  top: -4px;
+}
+
+.perforation::after {
+  bottom: -4px;
+}
+
+/* ── Torn edge SVG mask ───────────────────────────────────────────── */
+.torn-edge-left {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 120' preserveAspectRatio='none'%3E%3Cpath d='M12 0 L12 120 L8 118 L10 114 L7 110 L9 106 L6 102 L10 98 L7 94 L9 90 L6 86 L10 82 L7 78 L9 74 L6 70 L10 66 L7 62 L9 58 L6 54 L10 50 L7 46 L9 42 L6 38 L10 34 L7 30 L9 26 L6 22 L10 18 L7 14 L9 10 L6 6 L10 2 L12 0 Z' fill='white'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 120' preserveAspectRatio='none'%3E%3Cpath d='M12 0 L12 120 L8 118 L10 114 L7 110 L9 106 L6 102 L10 98 L7 94 L9 90 L6 86 L10 82 L7 78 L9 74 L6 70 L10 66 L7 62 L9 58 L6 54 L10 50 L7 46 L9 42 L6 38 L10 34 L7 30 L9 26 L6 22 L10 18 L7 14 L9 10 L6 6 L10 2 L12 0 Z' fill='white'/%3E%3C/svg%3E");
+  mask-size: 12px 100%;
+  -webkit-mask-size: 12px 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: left center;
+  -webkit-mask-position: left center;
+}
+
+/* ── Tabular figures utility ──────────────────────────────────────── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Voucher row base ─────────────────────────────────────────────── */
+.voucher-row {
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  transition: border-color var(--duration-fast) ease;
+}
+
+.voucher-row:hover {
+  border-color: var(--rule-strong);
+}
+
+/* ── Skeleton loaders ─────────────────────────────────────────────── */
+.skeleton {
+  background: var(--rule);
+  border-radius: 4px;
+  animation: pulse-skeleton 1.8s ease-in-out infinite;
+}
+
+/* ── Scrollbar styling ────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* ── Selection ────────────────────────────────────────────────────── */
+::selection {
+  background: var(--money);
+  color: white;
+}
+
+/* ── Scrollbar hide (for horizontal scroll containers) ────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

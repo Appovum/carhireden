@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres_secure_password@db:5432/couponpilot
+      - APP_SECRET=couponpilot_super_secret_master_key_change_me!
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secure_password
+      POSTGRES_DB: couponpilot
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+volumes:
+  postgres_data:

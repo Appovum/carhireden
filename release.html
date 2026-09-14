@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CouponPilot — Release Notes v1.0.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper:#F7F5F0;--paper2:#EFEBE3;--white:#FFFFFF;--ink:#1A1A1F;--ink2:#2E2E33;
+  --rule:#D8D5CE;--money:#0E8A5F;--money-bg:#E3F0EA;--urgent:#D94A2B;--urgent-bg:#FAE7E2;
+  --muted:#7A766D;--accent:#3B6BF5;--accent-bg:#EAF0FF;
+  --display:"Space Grotesk",system-ui,sans-serif;--body:"DM Sans",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --radius:10px;--radius-lg:14px;
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.03);
+  --shadow-lg:0 4px 24px rgba(0,0,0,.06);
+  --transition:.2s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"]{
+  --paper:#141416;--paper2:#1E1E22;--white:#222226;--ink:#EDEAE4;--ink2:#C8C5BE;
+  --rule:#2E2E33;--muted:#8F8D86;--accent-bg:#1C2640;--money-bg:#14312A;--urgent-bg:#3A1E18;
+  --shadow:0 1px 3px rgba(0,0,0,.2),0 4px 12px rgba(0,0,0,.15);
+  --shadow-lg:0 4px 24px rgba(0,0,0,.3);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+::selection{background:var(--accent);color:#fff}
+code{font-family:var(--mono);font-size:.88em;padding:2px 7px;background:var(--paper2);border-radius:5px;border:1px solid var(--rule)}
+
+/* Header */
+.header{position:sticky;top:0;z-index:100;background:var(--paper);border-bottom:1px solid var(--rule);padding:0 40px;height:64px;display:flex;align-items:center;backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.mark{width:34px;height:24px;border:2.5px solid currentColor;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.mark span{width:8px;height:8px;border:2.5px solid currentColor;border-radius:50%}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.back-link{font-size:14px;color:var(--muted);text-decoration:none;transition:color var(--transition)}
+.back-link:hover{color:var(--ink)}
+.theme-toggle{width:38px;height:38px;border-radius:8px;border:1px solid var(--rule);background:var(--white);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all var(--transition)}
+.theme-toggle:hover{background:var(--paper2)}
+
+/* Hero */
+.hero{background:var(--ink);color:var(--paper);padding:80px 40px;position:relative;overflow:hidden}
+.hero-inner{position:relative;max-width:900px;margin:0 auto}
+.hero h1{font-family:var(--display);font-weight:700;font-size:52px;line-height:1.08;letter-spacing:-.028em;margin-bottom:12px}
+.hero .version{font-family:var(--mono);font-size:16px;color:var(--money);letter-spacing:.04em;margin-bottom:20px}
+.hero .lede{font-size:20px;line-height:1.6;color:#a8a69e;max-width:58ch;margin-bottom:32px}
+.hero .meta-row{display:flex;gap:24px;flex-wrap:wrap}
+.hero .meta-item{font-family:var(--mono);font-size:13px;color:#8f8d86;display:flex;align-items:center;gap:8px}
+.hero .meta-dot{width:8px;height:8px;border-radius:50%}
+.hero .meta-dot.green{background:var(--money)}
+.hero .meta-dot.blue{background:var(--accent)}
+.hero .meta-dot.amber{background:#E6A817}
+
+/* Content */
+.content{max-width:900px;margin:0 auto;padding:56px 40px 80px}
+
+/* Section */
+.section{margin-bottom:56px}
+.section-eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.section-eyebrow::after{content:"";flex:1;border-top:1px dashed var(--rule)}
+.section h2{font-family:var(--display);font-weight:700;font-size:32px;line-height:1.15;letter-spacing:-.02em;margin-bottom:14px}
+.section h3{font-family:var(--display);font-weight:600;font-size:20px;margin:28px 0 12px}
+.section p{max-width:68ch;margin-bottom:14px;color:var(--ink2)}
+.section ul{margin:10px 0 20px 24px;color:var(--ink2)}
+.section li{margin-bottom:8px;padding-left:4px}
+.section li::marker{color:var(--muted)}
+
+/* Feature cards */
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;margin:24px 0}
+.feat-card{background:var(--white);border:1px solid var(--rule);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow);transition:all var(--transition)}
+.feat-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.feat-card .feat-icon{font-size:28px;margin-bottom:12px}
+.feat-card .feat-title{font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:8px;letter-spacing:-.01em}
+.feat-card .feat-desc{font-size:14px;color:var(--muted);line-height:1.55}
+
+/* Stats */
+.stat-row{display:flex;gap:18px;margin:24px 0;flex-wrap:wrap}
+.stat-tile{flex:1;min-width:160px;background:var(--white);border:1px solid var(--rule);border-radius:var(--radius-lg);padding:22px 24px;box-shadow:var(--shadow)}
+.stat-tile .stat-label{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat-tile .stat-value{font-family:var(--display);font-weight:700;font-size:28px;margin-top:8px;font-variant-numeric:tabular-nums}
+.stat-tile .stat-value.green{color:var(--money)}
+
+/* Table */
+.table-wrap{overflow-x:auto;margin:20px 0 28px;border:1px solid var(--rule);border-radius:var(--radius-lg);background:var(--white);box-shadow:var(--shadow)}
+.table-wrap table{width:100%;border-collapse:collapse;font-size:14px}
+.table-wrap th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:14px 20px;border-bottom:1.5px solid var(--rule);background:var(--paper2);font-weight:500}
+.table-wrap th:first-child{border-radius:var(--radius-lg) 0 0 0}
+.table-wrap th:last-child{border-radius:0 var(--radius-lg) 0 0}
+.table-wrap td{padding:12px 20px;border-bottom:1px solid var(--rule)}
+.table-wrap tr:last-child td{border-bottom:none}
+
+/* Tags */
+.tag{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:5px;background:var(--paper2);color:var(--muted);font-weight:500}
+.tag.green{background:var(--money-bg);color:var(--money)}
+.tag.blue{background:var(--accent-bg);color:var(--accent)}
+.tag.red{background:var(--urgent-bg);color:var(--urgent)}
+
+/* Callout */
+.callout{display:flex;gap:14px;padding:18px 20px;border-radius:var(--radius);margin:20px 0 24px;font-size:14px;line-height:1.6}
+.callout-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.callout p{margin:0}
+.callout-info{background:var(--accent-bg);border:1px solid rgba(59,107,245,.15)}
+.callout-info .callout-icon{color:var(--accent)}
+.callout-success{background:var(--money-bg);border:1px solid rgba(14,138,95,.15)}
+.callout-success .callout-icon{color:var(--money)}
+.callout-warning{background:var(--urgent-bg);border:1px solid rgba(217,74,43,.15)}
+.callout-warning .callout-icon{color:var(--urgent)}
+
+/* Upgrade path */
+.upgrade-steps{counter-reset:step;margin:20px 0}
+.upgrade-step{position:relative;padding:20px 24px 20px 64px;margin-bottom:12px;background:var(--white);border:1px solid var(--rule);border-radius:var(--radius-lg);font-size:14px;counter-increment:step;transition:all var(--transition)}
+.upgrade-step:hover{box-shadow:var(--shadow)}
+.upgrade-step::before{content:counter(step);position:absolute;left:20px;top:20px;width:30px;height:30px;border-radius:50%;background:var(--accent-bg);color:var(--accent);font-family:var(--mono);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.upgrade-step strong{display:block;font-family:var(--display);font-size:16px;margin-bottom:4px;color:var(--ink)}
+.upgrade-step p{margin:0;color:var(--muted)}
+
+/* Divider */
+.doc-divider{border:none;border-top:1.5px dashed var(--rule);margin:36px 0}
+
+/* Footer */
+.footer{text-align:center;padding:48px 40px;border-top:1px solid var(--rule);color:var(--muted);font-size:14px}
+.footer strong{color:var(--ink);font-family:var(--display)}
+
+@media(max-width:700px){
+  .hero{padding:48px 20px}
+  .hero h1{font-size:32px}
+  .content{padding:36px 20px 60px}
+  .feature-grid{grid-template-columns:1fr}
+  .stat-row{flex-direction:column}
+  .hero .meta-row{flex-direction:column;gap:10px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="documentation.html" class="back-link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Docs</a>
+  <a href="#" class="brand" style="margin-left:16px">
+    <span class="mark"><span></span></span>
+    CouponPilot
+  </a>
+  <div class="header-right">
+    <span class="tag green">v1.0.0</span>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button>
+  </div>
+</header>
+
+<!-- ═══════════ HERO ═══════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="version">VERSION 1.0.0</div>
+    <h1>CouponPilot is here.</h1>
+    <p class="lede">The first public release of the coupon site that fills itself. Production-grade affiliate monetization, cashback wallets, self-serve ad sales, and real commission tracking — all in one self-hosted Next.js application.</p>
+    <div class="meta-row">
+      <div class="meta-item"><span class="meta-dot green"></span> Production Ready</div>
+      <div class="meta-item"><span class="meta-dot blue"></span> August 4, 2026</div>
+      <div class="meta-item"><span class="meta-dot amber"></span> Next.js 16 · TypeScript · Prisma</div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ═══════════ OVERVIEW ═══════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Overview</div>
+    <h2>What's in this release</h2>
+    <p>CouponPilot v1.0.0 is the initial public release — a complete, production-ready coupon and cashback platform designed for CodeCanyon buyers who want to launch a revenue-generating affiliate site without writing code.</p>
+
+    <div class="stat-row">
+      <div class="stat-tile"><div class="stat-label">Database Models</div><div class="stat-value">19</div></div>
+      <div class="stat-tile"><div class="stat-label">Admin Modules</div><div class="stat-value">18</div></div>
+      <div class="stat-tile"><div class="stat-label">API Endpoints</div><div class="stat-value">40+</div></div>
+      <div class="stat-tile"><div class="stat-label">Network Connectors</div><div class="stat-value green">2</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ HIGHLIGHTS ═══════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Highlights</div>
+    <h2>The features that matter most</h2>
+
+    <div class="feature-grid">
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg></div>
+        <div class="feat-title">Live Network Sync</div>
+        <div class="feat-desc">Connect Awin or CJ Affiliate, run one sync, and your site populates with live offers. Programmes become stores, promotions become coupons, and transactions become attributed commissions.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--money)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="feat-title">Earnings Dashboard</div>
+        <div class="feat-desc">Real commission data pulled from your networks. See clicks, conversions, EPC, and commission broken down by store, coupon, category, and day. Know which coupon actually paid you.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+        <div class="feat-title">Click Attribution</div>
+        <div class="feat-desc">Every outbound click is tagged with a unique SubID. When the network reports a commission, it maps back to one coupon and one user. Bot filtering, two link strategies, and transaction deduplication included.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--money)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></div>
+        <div class="feat-title">Cashback Wallets</div>
+        <div class="feat-desc">Append-only ledger architecture. Balances are derived, never overwritten. Pending → confirmed → paid lifecycle. Missing-cashback claims, withdrawal approvals, and referral bonuses.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12A10 10 0 0012 2v20a10 10 0 0010-10z"/><path d="M2 12h10"/></svg></div>
+        <div class="feat-title">Self-Serve Ad Sales</div>
+        <div class="feat-desc">Brands pick a placement, pay by card or PayPal, upload artwork through their own portal. Signature-verified webhooks, automatic campaign expiry, and performance tracking.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></div>
+        <div class="feat-title">Feed Normalization</div>
+        <div class="feat-desc">Real affiliate feeds are messy. CouponPilot extracts prices from titles, parses coupon codes, normalizes discounts, strips tracking params, and deduplicates — automatically.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--money)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+        <div class="feat-title">Security First</div>
+        <div class="feat-desc">AES-256-GCM encryption at rest, session-based auth with Google OAuth, CSRF protection, rate limiting on all sensitive endpoints, Zod validation, and IP hashing.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <div class="feat-title">SEO Infrastructure</div>
+        <div class="feat-desc">Dynamic sitemaps, JSON-LD structured data, meta templates with variables, programmatic routes, on-demand ISR, and evergreen expired-coupon pages that keep ranking.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 128 128" fill="none"><path d="M120 60c-2.4-1.8-7.8-2.6-12.2-1.2-1.4.5-2.7 1.2-4 2.1 1.4-10.4-5.2-19.4-14.8-21.4l-2.4-.5v-4.4c0-2-1.6-3.6-3.6-3.6H74.4c-2 0-3.6 1.6-3.6 3.6V38H60c-2 0-3.6 1.6-3.6 3.6v9.2H45.6c-2 0-3.6 1.6-3.6 3.6v9.2H31.2c-2 0-3.6 1.6-3.6 3.6v9.2h-12c-2 0-3.6 1.6-3.6 3.6v9.2C12 90 28 100 52 100c32 0 58-16 64-32 3.6.5 7.2.2 10.4-1.2 2-1 3.6-2.8 3.6-4.8s-4-3.6-10-2z" fill="#2496ED"/></svg></div>
+        <div class="feat-title">Docker Ready</div>
+        <div class="feat-desc">Production Dockerfile with multi-stage build and docker-compose.yml. One command deploys the app and PostgreSQL 16. Also supports Vercel and any Node.js host.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ═══════════ TECH DETAILS ═══════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Technical Details</div>
+    <h2>Built for production</h2>
+
+    <h3>Stack</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>Technology</th><th>Version</th></tr></thead>
+        <tbody>
+          <tr><td>Framework</td><td>Next.js (App Router)</td><td>16</td></tr>
+          <tr><td>Runtime</td><td>React</td><td>19</td></tr>
+          <tr><td>Language</td><td>TypeScript</td><td>5</td></tr>
+          <tr><td>ORM</td><td>Prisma Client</td><td>6</td></tr>
+          <tr><td>Database</td><td>PostgreSQL</td><td>14+</td></tr>
+          <tr><td>Styling</td><td>Tailwind CSS</td><td>4</td></tr>
+          <tr><td>Payments</td><td>Stripe</td><td>22</td></tr>
+          <tr><td>Validation</td><td>Zod</td><td>4</td></tr>
+          <tr><td>Image Processing</td><td>Sharp</td><td>0.35</td></tr>
+          <tr><td>Testing</td><td>Vitest</td><td>4</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Database Schema</h3>
+    <p>19 core models with optimized indexes for hot paths:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Model</th><th>Purpose</th><th>Key Index</th></tr></thead>
+        <tbody>
+          <tr><td><code>Store</code></td><td>Merchant profiles with network mapping</td><td><code>slug</code> (unique)</td></tr>
+          <tr><td><code>Coupon</code></td><td>Offers with type, status, and dedupe</td><td><code>(storeId, status, expiresAt)</code></td></tr>
+          <tr><td><code>Click</code></td><td>Outbound click tracking with SubID</td><td><code>subId</code>, <code>storeId</code></td></tr>
+          <tr><td><code>Conversion</code></td><td>Attributed commissions from networks</td><td><code>(networkId, networkTransactionId)</code> unique</td></tr>
+          <tr><td><code>WalletEntry</code></td><td>Append-only cashback ledger</td><td><code>(userId, bucket)</code></td></tr>
+          <tr><td><code>User</code></td><td>Accounts with roles and referrals</td><td><code>email</code> (unique), <code>referralCode</code> (unique)</td></tr>
+          <tr><td><code>Network</code></td><td>Affiliate platform credentials</td><td><code>slug</code> (unique)</td></tr>
+          <tr><td><code>FeaturedOrder</code></td><td>Advertiser campaign orders</td><td><code>magicToken</code> (unique)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Connector Architecture</h3>
+    <p>The <code>NetworkConnector</code> interface standardizes all affiliate network integrations. Two connectors ship in v1.0.0:</p>
+    <ul>
+      <li><strong>Awin</strong> — Template-based link builder with programmes, promotions, and transaction sync</li>
+      <li><strong>CJ Affiliate</strong> — Append-subid link strategy with advertisers, link search, and commission detail</li>
+    </ul>
+    <p>Adding a new network requires implementing a single file — no changes anywhere else. Recorded test fixtures are included for development without live credentials.</p>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ═══════════ DEPLOYMENT ═══════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Deployment</div>
+    <h2>Three deployment options</h2>
+
+    <div class="feature-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 128 128" fill="none"><path d="M120 60c-2.4-1.8-7.8-2.6-12.2-1.2-1.4.5-2.7 1.2-4 2.1 1.4-10.4-5.2-19.4-14.8-21.4l-2.4-.5v-4.4c0-2-1.6-3.6-3.6-3.6H74.4c-2 0-3.6 1.6-3.6 3.6V38H60c-2 0-3.6 1.6-3.6 3.6v9.2H45.6c-2 0-3.6 1.6-3.6 3.6v9.2H31.2c-2 0-3.6 1.6-3.6 3.6v9.2h-12c-2 0-3.6 1.6-3.6 3.6v9.2C12 90 28 100 52 100c32 0 58-16 64-32 3.6.5 7.2.2 10.4-1.2 2-1 3.6-2.8 3.6-4.8s-4-3.6-10-2z" fill="#2496ED"/></svg></div>
+        <div class="feat-title">Docker Compose</div>
+        <div class="feat-desc">One-command setup on any VPS. Includes PostgreSQL 16. Recommended for most buyers.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 128 128" fill="none"><path d="M64 16.5L122 117.5H6L64 16.5Z" fill="currentColor"/></svg></div>
+        <div class="feat-title">Vercel</div>
+        <div class="feat-desc">Import and deploy. Pair with Neon or Supabase for managed PostgreSQL.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
+        <div class="feat-title">Manual Node.js</div>
+        <div class="feat-desc">npm install, build, and start on any Node.js 20+ host.</div>
+      </div>
+    </div>
+
+    <div class="callout callout-info">
+      <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+      <p>A web installer at <code>/install</code> guides you through database setup, admin account creation, and initial branding. No terminal access required after deployment.</p>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ═══════════ UPGRADE PATH ═══════════ -->
+  <div class="section">
+    <div class="section-eyebrow">For Future Updates</div>
+    <h2>Upgrade path</h2>
+    <p>When future versions are released, follow this process to safely update without losing your data or media files:</p>
+
+    <div class="upgrade-steps">
+      <div class="upgrade-step">
+        <strong>Back up your database and environment</strong>
+        <p>Always create a database dump (<code>pg_dump</code>) and back up your <code>.env</code> file before starting an update.</p>
+      </div>
+      <div class="upgrade-step">
+        <strong>Safe to overwrite vs. DO NOT overwrite</strong>
+        <p><strong>Safe to replace:</strong> <code>src/</code>, <code>prisma/schema.prisma</code>, <code>package.json</code>, <code>package-lock.json</code>, <code>Dockerfile</code>, <code>docker-compose.yml</code>.<br>
+        <strong>DO NOT overwrite:</strong> <code>.env</code>, <code>public/uploads/</code> (uploaded store logos, ad artwork & avatars), or your PostgreSQL database storage.</p>
+      </div>
+      <div class="upgrade-step">
+        <strong>Run database migrations</strong>
+        <p>Execute <code>npx prisma db push</code> to apply schema updates to your database.</p>
+      </div>
+      <div class="upgrade-step">
+        <strong>Rebuild and restart</strong>
+        <p>Run <code>npm run build &amp;&amp; npm start</code> or <code>docker compose up -d --build</code>.</p>
+      </div>
+      <div class="upgrade-step">
+        <strong>Verify application health</strong>
+        <p>Check the admin dashboard, test a store link, and verify network sync status.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <p><strong>Never overwrite public/uploads/ or .env when upgrading.</strong> User-uploaded logos, ad creative images, and master encryption keys live in these locations.</p>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ═══════════ KNOWN LIMITATIONS ═══════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Known Limitations</div>
+    <h2>What's planned for v1.1</h2>
+    <p>The following features are not included in v1.0.0 but are planned for upcoming releases:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>Status</th><th>Expected</th></tr></thead>
+        <tbody>
+          <tr><td>Impact.com connector</td><td><span class="tag blue">Planned</span></td><td>v1.1</td></tr>
+          <tr><td>Admitad connector</td><td><span class="tag blue">Planned</span></td><td>v1.1</td></tr>
+          <tr><td>Rakuten connector</td><td><span class="tag blue">Planned</span></td><td>v1.2</td></tr>
+          <tr><td>Web push notifications</td><td><span class="tag blue">Planned</span></td><td>v1.1</td></tr>
+          <tr><td>Discord &amp; WhatsApp webhooks</td><td><span class="tag blue">Planned</span></td><td>v1.1</td></tr>
+          <tr><td>Visual scraper module</td><td><span class="tag">Research</span></td><td>v1.2</td></tr>
+          <tr><td>Multi-language front end</td><td><span class="tag blue">Planned</span></td><td>v1.2</td></tr>
+          <tr><td>OG image generation</td><td><span class="tag blue">Planned</span></td><td>v1.1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="doc-divider">
+
+  <!-- ═══════════ LINKS ═══════════ -->
+  <div class="section">
+    <div class="section-eyebrow">Resources</div>
+    <h2>Related files</h2>
+    <div class="feature-grid" style="grid-template-columns:repeat(3,1fr)">
+      <a href="documentation.html" class="feat-card" style="text-decoration:none;color:var(--ink)">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <div class="feat-title">Documentation</div>
+        <div class="feat-desc">Complete installation guide, admin panel reference, and API documentation.</div>
+      </a>
+      <a href="changelog.html" class="feat-card" style="text-decoration:none;color:var(--ink)">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--money)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
+        <div class="feat-title">Changelog</div>
+        <div class="feat-desc">Detailed record of every feature, fix, and improvement across all releases.</div>
+      </a>
+      <a href="couponpilot-preview-slides.html" class="feat-card" style="text-decoration:none;color:var(--ink)">
+        <div class="feat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+        <div class="feat-title">Preview Slides</div>
+        <div class="feat-desc">Visual presentation of key features and design for CodeCanyon listing.</div>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <p><strong>CouponPilot</strong> · Version 1.0.0 · August 4, 2026</p>
+  <p style="margin-top:6px">Built with Next.js 16, TypeScript, Prisma &amp; Tailwind CSS 4</p>
+  <p style="margin-top:6px">© 2026 CouponPilot. All rights reserved.</p>
+</footer>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';
+  h.setAttribute('data-theme',n);localStorage.setItem('cp-doc-theme',n);
+  document.querySelector('.theme-toggle').textContent=n==='dark'?'☀':'◑';
+}
+(function(){const s=localStorage.getItem('cp-doc-theme');if(s){document.documentElement.setAttribute('data-theme',s);if(s==='dark')document.querySelector('.theme-toggle').textContent='☀'}})();
+</script>
+</body>
+</html>

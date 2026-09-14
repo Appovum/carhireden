@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Background Container -->
+  <rect width="512" height="512" rx="112" fill="#141418"/>
+  
+  <!-- Outer Ticket Border -->
+  <rect x="72" y="128" width="368" height="256" rx="32" stroke="#F7F5F0" stroke-width="24" fill="none"/>
+  
+  <!-- Vertical Dashed Stub Tear Line -->
+  <line x1="192" y1="144" x2="192" y2="368" stroke="#F7F5F0" stroke-width="20" stroke-linecap="round" stroke-dasharray="4 24"/>
+
+  <!-- Pilot Target Compass / Badge Emblem (Right Side) -->
+  <circle cx="328" cy="256" r="56" stroke="#F7F5F0" stroke-width="20" fill="none"/>
+  <circle cx="328" cy="256" r="18" fill="#F7F5F0"/>
+  <!-- Target Crosshairs / Arrow Accent -->
+  <line x1="328" y1="172" x2="328" y2="192" stroke="#F7F5F0" stroke-width="16" stroke-linecap="round"/>
+  <line x1="328" y1="320" x2="328" y2="340" stroke="#F7F5F0" stroke-width="16" stroke-linecap="round"/>
+  <line x1="244" y1="256" x2="264" y2="256" stroke="#F7F5F0" stroke-width="16" stroke-linecap="round"/>
+  <line x1="392" y1="256" x2="412" y2="256" stroke="#F7F5F0" stroke-width="16" stroke-linecap="round"/>
+</svg>
