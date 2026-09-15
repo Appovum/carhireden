@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "next": "16.2.12",
     "nodemailer": "^9.0.4",
