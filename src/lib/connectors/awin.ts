@@ -271,7 +271,7 @@ export class AwinConnector implements NetworkConnector {
           item.urlTracking ||
           item.deeplink ||
           item.url ||
-          `https://www.awin1.com/cread.php?awinmid=${advertiserId}&awinaffid=${process.env.AWIN_PUBLISHER_ID || "3017873"}`;
+          `https://www.awin1.com/cread.php?awinmid=${advertiserId}&awinaffid=${process.env.AWIN_PUBLISHER_ID || "YOUR_AWIN_PUBLISHER_ID"}`;
 
         return {
           networkId: this.slug,

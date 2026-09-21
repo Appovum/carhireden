@@ -45,3 +45,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# env backups from rotate-db-credentials.sh
+.env*.bak.*
+
+# release zips (built by scripts/build-release.sh)
+/dist

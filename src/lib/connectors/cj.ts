@@ -100,7 +100,7 @@ function parseCjLinksXml(xmlText: string, publisherId: string = process.env.CJ_P
       const clickUrl = clickUrlMatch ? clickUrlMatch[1] : undefined;
 
       // Fall back to bare homepage redirect only when Link Search didn't provide a clickUrl
-      const fallbackUrl = `https://www.anrdoezrs.net/click-${publisherId || "8033258"}-${advIdMatch[1]}`;
+      const fallbackUrl = `https://www.anrdoezrs.net/click-${publisherId || "YOUR_CJ_PUBLISHER_ID"}-${advIdMatch[1]}`;
 
       offers.push({
         networkId: "cj",
@@ -144,7 +144,7 @@ export class CJConnector implements NetworkConnector {
     }
 
     if (pat.startsWith("cj_pat_") || pat === "test_key" || pat === "sample_cj_pat" || pat.length < 10) {
-      return { success: true, message: `CJ credentials verified successfully for Publisher CID ${cid || "8033258"} (test mode).` };
+      return { success: true, message: `CJ credentials verified successfully for Publisher CID ${cid || "(not set)"} (test mode).` };
     }
 
     try {
@@ -208,7 +208,7 @@ export class CJConnector implements NetworkConnector {
         discountText: item.couponCode ? `Code: ${item.couponCode}` : item.linkName,
         discountType: item.couponCode ? "percentage" : "other",
         // Store clickUrl verbatim — it's the complete CJ deep-link tracking URL
-        destinationUrl: item.clickUrl || `https://www.anrdoezrs.net/click-${process.env.CJ_PUBLISHER_ID || "8033258"}-${item.advertiserId}`,
+        destinationUrl: item.clickUrl || `https://www.anrdoezrs.net/click-${process.env.CJ_PUBLISHER_ID || "YOUR_CJ_PUBLISHER_ID"}-${item.advertiserId}`,
         rawPayload: item,
       }));
     }

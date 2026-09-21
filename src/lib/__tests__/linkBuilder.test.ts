@@ -21,14 +21,14 @@ describe("Link Builder Utility", () => {
     const template = "https://www.awin1.com/cread.php?awinmid={merchantId}&awinaffid={publisherId}&clickref={subId}&ued={destinationUrl}";
     const link = buildAffiliateLink({
       linkTemplate: template,
-      affiliateId: "3017873",
+      affiliateId: "123456",
       merchantId: "95201",
       subId: "click_test_human_101",
       destinationUrl: "https://giftlab.com/products/gift-set",
     });
 
     expect(link).toBe(
-      "https://www.awin1.com/cread.php?awinmid=95201&awinaffid=3017873&clickref=click_test_human_101&ued=https%3A%2F%2Fgiftlab.com%2Fproducts%2Fgift-set"
+      "https://www.awin1.com/cread.php?awinmid=95201&awinaffid=123456&clickref=click_test_human_101&ued=https%3A%2F%2Fgiftlab.com%2Fproducts%2Fgift-set"
     );
     expect(link).not.toContain("{");
     expect(link).not.toContain("}");
@@ -38,7 +38,7 @@ describe("Link Builder Utility", () => {
     const template = "https://www.awin1.com/cread.php?awinmid={merchantId}&awinaffid={publisherId}&clickref={subId}&ued={destinationUrl}";
     const link = buildAffiliateLink({
       linkTemplate: template,
-      affiliateId: "3017873",
+      affiliateId: "123456",
       merchantId: "7001",
       subId: "click_123",
       destinationUrl: "https://nike.com/summer?size=10&color=blue",
@@ -65,7 +65,7 @@ describe("Link Builder Utility", () => {
     expect(() =>
       buildAffiliateLink({
         linkTemplate: template,
-        affiliateId: "3017873",
+        affiliateId: "123456",
         merchantId: null,
         subId: "click_123",
         destinationUrl: "https://nike.com",

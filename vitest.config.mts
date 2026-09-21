@@ -6,8 +6,9 @@ export default defineConfig({
     environment: "node",
     globals: true,
     fileParallelism: false,
+    // Tests need DATABASE_URL from the environment (.env / .env.test). Never hardcode one here.
     env: {
-      DATABASE_URL: process.env.DATABASE_URL || "postgresql://neondb_owner:npg_DMdN0HcL4AhI@ep-delicate-leaf-awismbmn-pooler.c-12.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require",
+      DATABASE_URL: process.env.DATABASE_URL || "",
     },
   },
   resolve: {

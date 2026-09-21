@@ -866,6 +866,21 @@ npm start</code></pre>
       </table>
     </div>
 
+    <h3>Affiliate Networks — Awin &amp; CJ</h3>
+    <p>You can enter these either in <strong>Admin → Networks</strong> (stored encrypted in the database, recommended) or in <code>.env</code>. Values saved in the Admin UI take precedence over the env vars.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>AWIN_API_KEY</code></td><td>Awin API token — <code>ui.awin.com</code> → Toolbox → API credentials</td></tr>
+          <tr><td><code>AWIN_PUBLISHER_ID</code></td><td>Your Awin publisher (affiliate) ID</td></tr>
+          <tr><td><code>CJ_PERSONAL_ACCESS_TOKEN</code></td><td>CJ Personal Access Token — <code>developers.cj.com</code> → Personal Access Tokens</td></tr>
+          <tr><td><code>CJ_PUBLISHER_ID</code></td><td>Your CJ publisher CID</td></tr>
+          <tr><td><code>ENABLE_LIVE_AFFILIATE_LINKS</code></td><td><code>true</code> to send real affiliate redirects. Keep <code>false</code> until your publisher IDs are set — with no ID configured, outgoing links use a <code>YOUR_…_PUBLISHER_ID</code> placeholder and will not track.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
     <h3>Telegram <span class="tag">Optional</span></h3>
     <div class="table-wrap">
       <table>
@@ -886,7 +901,7 @@ npm start</code></pre>
           <tr><td><code>SMTP_PORT</code></td><td>SMTP server port number</td><td><code>465</code> (SSL) or <code>587</code> (TLS)</td></tr>
           <tr><td><code>SMTP_SECURE</code></td><td>Set <code>true</code> for SSL (port 465), <code>false</code> for TLS (port 587)</td><td><code>true</code></td></tr>
           <tr><td><code>SMTP_USER</code></td><td>Email account username / sender address</td><td><code>you@example.com</code></td></tr>
-          <tr><td><code>SMTP_PASS</code></td><td>SMTP password or App Password</td><td><code>leojwcusyscfbamd</code></td></tr>
+          <tr><td><code>SMTP_PASS</code></td><td>SMTP password or App Password</td><td><code>abcd efgh ijkl mnop</code></td></tr>
           <tr><td><code>SMTP_FROM</code></td><td>Display sender name and email format</td><td><code>CouponPilot &lt;you@example.com&gt;</code></td></tr>
         </tbody>
       </table>

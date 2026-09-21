@@ -292,6 +292,18 @@ All environment variables are documented in the `.env.example` file. Here is a c
 | `PAYPAL_CLIENT_SECRET` | From `developer.paypal.com` |
 | `PAYPAL_MODE` | `sandbox` for testing, `live` for production |
 
+### Affiliate Networks — Awin & CJ
+
+You can enter these either in **Admin → Networks** (stored encrypted in the database, recommended) or in `.env`. Values saved in the Admin UI take precedence over the env vars.
+
+| Variable | Description |
+|---|---|
+| `AWIN_API_KEY` | Awin API token — `ui.awin.com` → Toolbox → API credentials |
+| `AWIN_PUBLISHER_ID` | Your Awin publisher (affiliate) ID |
+| `CJ_PERSONAL_ACCESS_TOKEN` | CJ Personal Access Token — `developers.cj.com` → Personal Access Tokens |
+| `CJ_PUBLISHER_ID` | Your CJ publisher CID |
+| `ENABLE_LIVE_AFFILIATE_LINKS` | `true` to send real affiliate redirects. Keep `false` until your publisher IDs are set — with no ID configured, outgoing links use a `YOUR_…_PUBLISHER_ID` placeholder and will not track. |
+
 ### Telegram (Optional)
 
 | Variable | Description |
@@ -307,7 +319,7 @@ All environment variables are documented in the `.env.example` file. Here is a c
 | `SMTP_PORT` | SMTP server port number | `465` (SSL) or `587` (TLS) |
 | `SMTP_SECURE` | Set `true` for SSL (port 465), `false` for TLS (port 587) | `true` |
 | `SMTP_USER` | Email account username / sender address | `you@example.com` |
-| `SMTP_PASS` | SMTP password or App Password | `leojwcusyscfbamd` |
+| `SMTP_PASS` | SMTP password or App Password | `abcd efgh ijkl mnop` |
 | `SMTP_FROM` | Display sender name and email format | `CouponPilot <you@example.com>` |
 
 

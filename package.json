@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "seed:catalog": "tsx scripts/seed-catalog.ts",
-    "seed:reset": "tsx scripts/seed-catalog.ts --reset"
+    "seed:reset": "tsx scripts/seed-catalog.ts --reset",
+    "db:provision": "bash scripts/provision-database.sh",
+    "db:reinstall": "bash scripts/reinstall-database.sh",
+    "db:rotate-credentials": "bash scripts/rotate-db-credentials.sh"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -33,6 +36,7 @@
     "eslint-config-next": "16.2.12",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
+    "tsx": "^4.19.0",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }

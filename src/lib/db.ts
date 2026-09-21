@@ -4,9 +4,13 @@
 
 import { PrismaClient } from "@prisma/client";
 
-// Ensure DATABASE_URL has a safe default during build steps if unset
+// Never fall back to a hardcoded connection string. If DATABASE_URL is
+// missing, fail loudly so a misconfigured install can't silently connect
+// to someone else's database.
 if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = "postgresql://neondb_owner:npg_DMdN0HcL4AhI@ep-delicate-leaf-awismbmn-pooler.c-12.us-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require";
+  throw new Error(
+    "DATABASE_URL is not set. Copy .env.example to .env and set DATABASE_URL to your own PostgreSQL connection string."
+  );
 }
 
 const globalForPrisma = globalThis as unknown as {

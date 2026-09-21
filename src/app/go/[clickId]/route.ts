@@ -88,7 +88,6 @@ export async function GET(
     const lower = id.trim().toLowerCase();
     return (
       lower === "123456" ||
-      lower === "3017873" ||
       lower.includes("sample") ||
       lower.includes("demo") ||
       lower.includes("your_") ||

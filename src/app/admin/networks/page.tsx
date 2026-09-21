@@ -115,7 +115,7 @@ export default function AdminNetworksPage() {
     previewAwinLink = buildAffiliateLink({
       strategy: "template",
       linkTemplate: customTemplate,
-      affiliateId: awinPublisherId || "3017873",
+      affiliateId: awinPublisherId || "YOUR_AWIN_PUBLISHER_ID",
       merchantId: "12345",
       subId: sampleClickId,
       destinationUrl: "https://nike.com/running-shoes",
@@ -128,10 +128,10 @@ export default function AdminNetworksPage() {
   try {
     previewCjLink = buildAffiliateLink({
       strategy: "append_subid",
-      affiliateId: cjPublisherId || "8033258",
+      affiliateId: cjPublisherId || "YOUR_CJ_PUBLISHER_ID",
       merchantId: sampleMerchantId,
       subId: sampleClickId,
-      destinationUrl: `https://www.anrdoezrs.net/click-${cjPublisherId || "8033258"}-${sampleMerchantId}`,
+      destinationUrl: `https://www.anrdoezrs.net/click-${cjPublisherId || "YOUR_CJ_PUBLISHER_ID"}-${sampleMerchantId}`,
     });
   } catch {
     previewCjLink = "Configure publisher ID to view preview link";
