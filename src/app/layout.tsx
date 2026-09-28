@@ -82,6 +82,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ToastProvider } from "@/components/Toast";
+import { Analytics } from "@vercel/analytics/next";
 
 export default async function RootLayout({
   children,
@@ -124,6 +125,7 @@ export default async function RootLayout({
             </ToastProvider>
           </LanguageProvider>
         </SiteSettingsProvider>
+        <Analytics />
       </body>
     </html>
   );
