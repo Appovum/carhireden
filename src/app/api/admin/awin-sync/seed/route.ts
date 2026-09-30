@@ -6,24 +6,36 @@
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import {
+  getNetworkCredentials,
+  missingCredentialFields,
+  serializeCredentials,
+} from "@/lib/connectors/credentials";
 
 export async function POST() {
-  const apiKey = process.env.AWIN_API_KEY;
-  const publisherId = process.env.AWIN_PUBLISHER_ID;
+  // Admin → Networks first, .env as fallback.
+  const credentials = await getNetworkCredentials("awin");
+  const missing = missingCredentialFields("awin", credentials);
 
-  if (!apiKey || !publisherId) {
+  if (missing.length > 0) {
     return NextResponse.json(
-      { success: false, error: "AWIN_API_KEY and AWIN_PUBLISHER_ID must be set in .env.local" },
+      {
+        success: false,
+        error: `Awin ${missing.join(" and ")} missing. Add them in Admin → Networks, or set AWIN_API_KEY and AWIN_PUBLISHER_ID in .env.`,
+      },
       { status: 400 }
     );
   }
 
+  const publisherId = credentials.publisherId as string;
+
   try {
-    // Upsert Awin Network record
+    // Upsert Awin Network record. The update branch deliberately leaves
+    // apiCredentialsEncrypted alone so it never overwrites credentials the
+    // admin saved in the panel.
     const network = await db.network.upsert({
       where: { slug: "awin" },
       update: {
-        apiCredentialsEncrypted: JSON.stringify({ apiKey, publisherId }),
         isEnabled: true,
       },
       create: {
@@ -31,7 +43,7 @@ export async function POST() {
         slug: "awin",
         isEnabled: true,
         linkTemplate: "https://www.awin1.com/cread.php?awinmid={advertiserId}&awinaffid={publisherId}&ued={destinationUrl}&clickref={subId}",
-        apiCredentialsEncrypted: JSON.stringify({ apiKey, publisherId }),
+        apiCredentialsEncrypted: serializeCredentials(credentials),
       },
     });
 

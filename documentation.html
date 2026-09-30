@@ -491,7 +491,7 @@ code:not(pre code) {
     CouponPilot
   </a>
   <div class="header-right">
-    <span class="version-badge">v1.0.0</span>
+    <span class="version-badge">v1.0.2</span>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button>
   </div>
 </header>
@@ -867,7 +867,14 @@ npm start</code></pre>
     </div>
 
     <h3>Affiliate Networks — Awin &amp; CJ</h3>
-    <p>You can enter these either in <strong>Admin → Networks</strong> (stored encrypted in the database, recommended) or in <code>.env</code>. Values saved in the Admin UI take precedence over the env vars.</p>
+    <p><strong>Recommended: enter these in Admin → Networks.</strong> Go to <code>/admin/networks</code>, type your Publisher ID and API token into the network card, and press <strong>Save credentials</strong>. They are encrypted with AES-256-GCM (using <code>APP_SECRET</code>) and stored in the database. Press <strong>Test connection</strong> to verify them against the live network API.</p>
+    <ul>
+      <li>Leave the token field blank when re-saving to keep the stored token and only change the Publisher ID. The placeholder shows the last 4 characters of the stored token.</li>
+      <li>The env vars below are an optional fallback. Anything saved in Admin → Networks <strong>overrides</strong> them.</li>
+      <li>The card badge shows <strong>Configured</strong> only when both the Publisher ID and the token are present.</li>
+      <li>Credential changes apply immediately to coupon syncs and to outgoing <code>/go/...</code> tracking links.</li>
+      <li>Saving is disabled while <code>NEXT_PUBLIC_DEMO_MODE=true</code>.</li>
+    </ul>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Variable</th><th>Description</th></tr></thead>
@@ -1835,7 +1842,7 @@ npm start</code></pre>
   <!-- FOOTER -->
   <footer class="doc-footer">
     <div class="footer-brand">CouponPilot</div>
-    <p>Version 1.0.0 · Built with Next.js 16, TypeScript, Prisma &amp; Tailwind</p>
+    <p>Version 1.0.2 · Built with Next.js 16, TypeScript, Prisma &amp; Tailwind</p>
     <p style="margin-top:8px;">© 2026 CouponPilot. All rights reserved.</p>
   </footer>
 

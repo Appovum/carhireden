@@ -114,13 +114,93 @@ a{color:var(--accent);text-decoration:none}
 
 <div class="content">
 
-  <!-- ═══════════ v1.0.0 ═══════════ -->
+  <!-- ═══════════ v1.0.2 ═══════════ -->
   <div class="release latest">
+    <div class="release-dot"></div>
+    <div class="release-header">
+      <span class="release-version">1.0.2</span>
+      <span class="release-date">2026-10-01</span>
+      <span class="release-tag latest">Latest Release</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-fixed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Fixed</div>
+      <ul class="change-list">
+        <li><strong>Affiliate credentials can now be saved from the admin panel</strong> — The Awin and CJ cards in Admin → Networks were read-only, so credentials could only ever come from <code>.env</code>. The Publisher ID and API token fields are now editable with a <strong>Save credentials</strong> button, encrypted with AES-256-GCM before storage.</li>
+        <li><strong>Syncs now use the saved credentials</strong> — <code>/api/admin/awin-sync</code>, <code>/api/admin/cj-sync</code> and the Awin seed route read only from <code>.env</code> and failed with “must be set in .env.local” even when credentials were stored. They now resolve credentials from the database first, falling back to <code>.env</code>, and report clearly which field is missing.</li>
+        <li><strong>Connection status is real</strong> — The network cards showed a hardcoded “Connected • Active” badge regardless of configuration. They now show <strong>Configured</strong> / <strong>Not configured</strong> based on the credentials actually present, and list the missing fields.</li>
+        <li><strong>Test suite no longer loads a hardcoded database</strong> — <code>vitest.config.mts</code> now reads <code>DATABASE_URL</code> and <code>APP_SECRET</code> from your <code>.env</code>.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-security"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Security</div>
+      <ul class="change-list">
+        <li><strong>API tokens are no longer stored in plaintext</strong> — The sync routes wrote credentials into <code>Network.apiCredentialsEncrypted</code> as plain JSON. They are now encrypted. Run <code>npm run db:reencrypt-credentials</code> once to convert existing rows.</li>
+        <li><strong>Credentials are never sent to the browser</strong> — <code>GET /api/admin/networks</code> previously returned the stored credential blob. It now returns only whether a secret exists and its last 4 characters.</li>
+        <li><strong>Saving respects demo mode</strong> — Credential writes are blocked while <code>NEXT_PUBLIC_DEMO_MODE=true</code>.</li>
+        <li><strong>Tests refuse to run against a live database</strong> — The suite deletes and re-seeds rows. It now aborts unless the target is local, has “test” in its name, or <code>ALLOW_DESTRUCTIVE_TESTS=true</code> is set.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-added"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Added</div>
+      <ul class="change-list">
+        <li><strong><code>npm run db:reencrypt-credentials</code></strong> — One-time migration that encrypts any network credentials previously stored as plaintext. Safe to run repeatedly.</li>
+        <li><strong>Documentation</strong> — Admin → Networks is now documented as the recommended way to configure Awin and CJ, with troubleshooting entries for both issues above.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════ v1.0.1 ═══════════ -->
+  <div class="release">
+    <div class="release-dot"></div>
+    <div class="release-header">
+      <span class="release-version">1.0.1</span>
+      <span class="release-date">2026-09-21</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-security"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Security</div>
+      <ul class="change-list">
+        <li><strong>No built-in database fallback</strong> — Removed the hardcoded <code>DATABASE_URL</code> fallback from <code>src/lib/db.ts</code> and <code>vitest.config.mts</code>. The app now stops with a clear error when <code>DATABASE_URL</code> is not set instead of silently connecting to a default database.</li>
+        <li><strong>No built-in affiliate IDs</strong> — Removed hardcoded fallback publisher IDs from the Awin and CJ connectors, the Admin → Networks preview, and the <code>/go</code> redirect route. Installs without configured IDs now generate an obvious <code>YOUR_…_PUBLISHER_ID</code> placeholder rather than a tracking link.</li>
+        <li><strong>Clean example config</strong> — <code>.env.example</code> and the documentation now contain placeholder values only.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-added"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Added</div>
+      <ul class="change-list">
+        <li><strong>Affiliate network env vars documented</strong> — <code>AWIN_API_KEY</code>, <code>AWIN_PUBLISHER_ID</code>, <code>CJ_PERSONAL_ACCESS_TOKEN</code>, <code>CJ_PUBLISHER_ID</code> and <code>ENABLE_LIVE_AFFILIATE_LINKS</code> in <code>.env.example</code> and the documentation. Values saved in Admin → Networks still take precedence.</li>
+        <li><strong>Database scripts</strong> — <code>scripts/provision-database.sh</code> (create schema and seed the demo catalogue without touching accounts), <code>scripts/reinstall-database.sh</code> (full wipe and reinstall, with confirmation), and <code>scripts/rotate-db-credentials.sh</code> (rotate credentials in <code>.env</code> and Vercel, then redeploy). Available as <code>npm run db:provision</code>, <code>db:reinstall</code>, <code>db:rotate-credentials</code>.</li>
+        <li><strong>Release packaging</strong> — <code>scripts/build-release.sh</code> builds the distribution zip from tracked files only and refuses to build if any secret-like value is present.</li>
+        <li><strong>One-click demo sign-in</strong> — When <code>NEXT_PUBLIC_DEMO_MODE=true</code>, the login page shows “Admin dashboard” and “Shopper account” buttons. Compiled out of normal installs.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-changed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg></span> Changed</div>
+      <ul class="change-list">
+        <li><strong>Package contents</strong> — Local SQLite files (<code>prisma/dev.db</code>, <code>prisma/test.db</code>) and <code>tsconfig.tsbuildinfo</code> are no longer shipped. PostgreSQL is the only supported database.</li>
+        <li><strong><code>tsx</code> added to devDependencies</strong> — The seed scripts required it but it was not declared.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-fixed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Fixed</div>
+      <ul class="change-list">
+        <li>Login redirect uses <code>window.location.assign()</code> (React Compiler lint compliance).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════ v1.0.0 ═══════════ -->
+  <div class="release">
     <div class="release-dot"></div>
     <div class="release-header">
       <span class="release-version">1.0.0</span>
       <span class="release-date">2026-08-04</span>
-      <span class="release-tag latest">Latest Release</span>
     </div>
 
     <div class="change-group">

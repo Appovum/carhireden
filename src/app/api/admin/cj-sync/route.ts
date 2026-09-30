@@ -10,21 +10,30 @@ import { db } from "@/lib/db";
 import crypto from "crypto";
 import { CJConnector } from "@/lib/connectors/cj";
 import { mapToCanonicalCategory } from "@/lib/importer/categoryNormalizer";
+import {
+  getNetworkCredentials,
+  missingCredentialFields,
+  serializeCredentials,
+} from "@/lib/connectors/credentials";
 
 const connector = new CJConnector();
 
 export async function POST() {
-  const pat = process.env.CJ_PERSONAL_ACCESS_TOKEN;
-  const publisherId = process.env.CJ_PUBLISHER_ID;
+  // Admin → Networks first, .env as fallback.
+  const credentials = await getNetworkCredentials("cj");
+  const missing = missingCredentialFields("cj", credentials);
 
-  if (!pat || !publisherId) {
+  if (missing.length > 0) {
     return NextResponse.json(
-      { success: false, error: "CJ_PERSONAL_ACCESS_TOKEN and CJ_PUBLISHER_ID must be set in .env.local" },
+      {
+        success: false,
+        error: `CJ ${missing.join(" and ")} missing. Add them in Admin → Networks, or set CJ_PERSONAL_ACCESS_TOKEN and CJ_PUBLISHER_ID in .env.`,
+      },
       { status: 400 }
     );
   }
 
-  const credentials = { accessToken: pat, publisherId, websiteId: publisherId };
+  const publisherId = credentials.publisherId as string;
   const results = {
     storesImported: 0,
     storesUpdated: 0,
@@ -46,7 +55,7 @@ export async function POST() {
           slug: "cj",
           isEnabled: true,
           linkTemplate: "append_subid",
-          apiCredentialsEncrypted: JSON.stringify(credentials),
+          apiCredentialsEncrypted: serializeCredentials(credentials),
         },
       });
     }

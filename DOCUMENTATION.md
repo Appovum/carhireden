@@ -1,6 +1,6 @@
 # CouponPilot — Documentation
 
-**Version 1.0.0** · Last updated: August 2026
+**Version 1.0.2** · Last updated: October 2026
 
 ---
 
@@ -294,7 +294,14 @@ All environment variables are documented in the `.env.example` file. Here is a c
 
 ### Affiliate Networks — Awin & CJ
 
-You can enter these either in **Admin → Networks** (stored encrypted in the database, recommended) or in `.env`. Values saved in the Admin UI take precedence over the env vars.
+**Recommended: enter these in Admin → Networks.** Go to `/admin/networks`, type your Publisher ID and API token into the network card, and press **Save credentials**. They are encrypted with AES-256-GCM (using `APP_SECRET`) and stored in the database. Press **Test connection** to verify them against the live network API.
+
+Notes:
+- Leave the token field blank when re-saving to keep the stored token and only change the Publisher ID. The placeholder shows the last 4 characters of the stored token.
+- The env vars below are an optional fallback. Anything saved in Admin → Networks **overrides** them.
+- The card badge shows **Configured** only when both the Publisher ID and the token are present.
+- Credential changes apply immediately to coupon syncs and to outgoing `/go/...` tracking links.
+- Saving is disabled while `NEXT_PUBLIC_DEMO_MODE=true`.
 
 | Variable | Description |
 |---|---|
@@ -1159,6 +1166,17 @@ All admin endpoints are under `/api/admin/` and require the `admin` role.
 
 ### Common Issues
 
+#### Awin / CJ credentials saved in the admin panel are not being used
+
+- **Cause:** On versions before 1.0.2 the network cards were read-only and the sync routes only read `.env`.
+- **Fix:** Update to 1.0.2 or later, then enter your credentials at **Admin → Networks** and press **Save credentials**. If your `.env` also defines `AWIN_*` / `CJ_*`, the saved values take precedence.
+- **Note:** If you previously ran a sync on an older version, your tokens may be stored unencrypted in the database. Run `npm run db:reencrypt-credentials` once to encrypt them.
+
+#### Running tests wiped my data
+
+- **Cause:** The test suite deletes and re-seeds rows in whatever database `DATABASE_URL` points at.
+- **Fix:** Never run `npx vitest` against your live database. Since 1.0.2 the suite refuses to start unless the target database is local, has "test" in its name, or you explicitly set `ALLOW_DESTRUCTIVE_TESTS=true`.
+
 #### "Database connection failed"
 
 - **Cause:** Invalid `DATABASE_URL` in `.env`
@@ -1251,7 +1269,7 @@ CouponPilot is licensed under the **Envato Regular License**. Each license permi
 
 <div align="center">
 
-**CouponPilot v1.0.0** · Built with ❤️ using Next.js 16, TypeScript, Prisma & Tailwind
+**CouponPilot v1.0.2** · Built with ❤️ using Next.js 16, TypeScript, Prisma & Tailwind
 
 © 2026 CouponPilot. All rights reserved.
 

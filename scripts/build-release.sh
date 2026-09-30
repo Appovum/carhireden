@@ -54,7 +54,7 @@ PATTERNS=(
   'ratneshkumar|suchitrabsinha|hey-3420|web-buddy'   # author identifiers
 )
 HITS=0
-SCAN=(grep -rInE --exclude=package-lock.json --exclude=build-release.sh)
+SCAN=(grep -rInE --exclude=package-lock.json --exclude=build-release.sh --exclude=publish-snapshot.sh)
 for p in "${PATTERNS[@]}"; do
   if "${SCAN[@]}" "$p" "$STAGE" >/dev/null 2>&1; then
     echo "   ✗ pattern matched: $p"

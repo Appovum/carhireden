@@ -12,21 +12,26 @@ import { AwinConnector, AwinProgramme } from "@/lib/connectors/awin";
 import { getDomainLogoUrl } from "@/lib/importer/normalizer";
 import { processAndSaveStoreLogo } from "@/lib/importer/logoProcessor";
 import { mapToCanonicalCategory } from "@/lib/importer/categoryNormalizer";
+import { getNetworkCredentials, missingCredentialFields, serializeCredentials } from "@/lib/connectors/credentials";
 
 const connector = new AwinConnector();
 
 export async function POST() {
-  const apiKey = process.env.AWIN_API_KEY;
-  const publisherId = process.env.AWIN_PUBLISHER_ID;
+  // Admin → Networks first, .env as fallback.
+  const credentials = await getNetworkCredentials("awin");
+  const missing = missingCredentialFields("awin", credentials);
 
-  if (!apiKey || !publisherId) {
+  if (missing.length > 0) {
     return NextResponse.json(
-      { success: false, error: "AWIN_API_KEY and AWIN_PUBLISHER_ID must be set in .env.local" },
+      {
+        success: false,
+        error: `Awin ${missing.join(" and ")} missing. Add them in Admin → Networks, or set AWIN_API_KEY and AWIN_PUBLISHER_ID in .env.`,
+      },
       { status: 400 }
     );
   }
 
-  const credentials = { apiKey, publisherId };
+  const publisherId = credentials.publisherId as string;
   const results = {
     storesImported: 0,
     storesUpdated: 0,
@@ -51,7 +56,7 @@ export async function POST() {
           slug: "awin",
           isEnabled: true,
           linkTemplate: "https://www.awin1.com/cread.php?awinmid={merchantId}&awinaffid={publisherId}&clickref={subId}&ued={destinationUrlEncoded}",
-          apiCredentialsEncrypted: JSON.stringify(credentials),
+          apiCredentialsEncrypted: serializeCredentials(credentials),
         },
       });
     }
