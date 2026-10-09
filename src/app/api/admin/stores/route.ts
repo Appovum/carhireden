@@ -5,8 +5,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const searchParams = request.nextUrl.searchParams;
   const status = searchParams.get("status"); // "active" | "pending_review"
 
@@ -35,6 +39,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const body = await request.json();
   const {
     name,
@@ -76,6 +83,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const body = await request.json();
   const { id, ids, action, ...updates } = body;
 
@@ -112,6 +122,9 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const searchParams = request.nextUrl.searchParams;
   const id = searchParams.get("id");
 

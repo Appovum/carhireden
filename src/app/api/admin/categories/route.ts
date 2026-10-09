@@ -5,8 +5,12 @@
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const categories = await db.category.findMany({
       include: {
@@ -33,6 +37,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { name, slug, icon, description } = body;
@@ -58,6 +65,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");

@@ -6,8 +6,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/session";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const users = await db.user.findMany({
       include: {
@@ -48,6 +52,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { action, userId, amountMinor, bucket = "confirmed", description, email, password, name, role = "user" } = body;
@@ -109,6 +116,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { id, ids, action, email, name, role, password } = body;
@@ -148,6 +158,9 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const searchParams = req.nextUrl.searchParams;
     const id = searchParams.get("id");

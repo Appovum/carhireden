@@ -5,8 +5,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { listAllClaimsForAdmin, resolveClaimByAdmin } from "@/lib/ledger/claims";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const claims = await listAllClaimsForAdmin();
     return NextResponse.json({ success: true, claims });
@@ -17,6 +21,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { claimId, action } = body; // action: "approve" | "reject"

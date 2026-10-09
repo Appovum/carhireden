@@ -5,8 +5,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     // 1. Fetch default bonus rate from db.setting
     let defaultBonusMinor = 500; // $5.00 default fallback
@@ -87,6 +91,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await request.json();
     const { action, referrerId, referredUserId, amountMinor } = body;

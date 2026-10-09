@@ -7,11 +7,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getConnector } from "@/lib/connectors";
 import { decryptSecret } from "@/lib/security/crypto";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const { id } = await params;
   const body = await request.json().catch(() => ({}));
 

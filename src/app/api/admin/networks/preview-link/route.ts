@@ -5,8 +5,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { buildAffiliateLink } from "@/lib/linkBuilder";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const body = await request.json().catch(() => ({}));
   const { linkTemplate, affiliateId, merchantId, subId = "sample_click_123", destinationUrl = "https://example.com/product" } = body;
 

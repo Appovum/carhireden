@@ -6,6 +6,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { loginUser } from "@/lib/auth/session";
+import { createSessionToken } from "@/lib/auth/sessionToken";
+import { setSessionCookie } from "@/lib/auth/sessionCookie";
 
 function hashIp(ip: string): string {
   return crypto.createHash("sha256").update(ip || "127.0.0.1").digest("hex");
@@ -22,24 +24,33 @@ export async function POST(request: NextRequest) {
   const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
   const guestIpHash = hashIp(clientIp);
 
+  let user;
   try {
-    const user = await loginUser(email, password, guestIpHash);
-
-    const res = NextResponse.json({
-      success: true,
-      message: "Login successful!",
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
-    });
-
-    res.cookies.set("cp_session", user.id, {
-      httpOnly: true,
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60,
-      sameSite: "lax",
-    });
-
-    return res;
-  } catch (err: any) {
-    return NextResponse.json({ success: false, message: err.message || "Invalid credentials." }, { status: 401 });
+    user = await loginUser(email, password, guestIpHash);
+  } catch (err: unknown) {
+    return NextResponse.json(
+      { success: false, message: err instanceof Error ? err.message : "Invalid credentials." },
+      { status: 401 }
+    );
   }
+
+  let token: string;
+  try {
+    token = await createSessionToken({ id: user.id, passwordHash: user.passwordHash });
+  } catch (err) {
+    // APP_SECRET is not configured. Tell the owner in the log, not the visitor.
+    console.error("[AUTH] Could not create a session:", err);
+    return NextResponse.json(
+      { success: false, message: "Sign-in is temporarily unavailable. Please contact the site owner." },
+      { status: 500 }
+    );
+  }
+
+  const res = NextResponse.json({
+    success: true,
+    message: "Login successful!",
+    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+  });
+  setSessionCookie(res, token, request);
+  return res;
 }

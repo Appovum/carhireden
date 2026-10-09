@@ -114,13 +114,51 @@ a{color:var(--accent);text-decoration:none}
 
 <div class="content">
 
-  <!-- ═══════════ v1.0.6 ═══════════ -->
+  <!-- ═══════════ v1.0.7 ═══════════ -->
   <div class="release latest">
+    <div class="release-dot"></div>
+    <div class="release-header">
+      <span class="release-version">1.0.7</span>
+      <span class="release-date">2026-10-09</span>
+      <span class="release-tag latest">Latest Release</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-security"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Security — critical, please update every install</div>
+      <ul class="change-list">
+        <li><strong>The admin API did not check who was calling.</strong> In every earlier version, the <code>/api/admin/*</code> routes only checked that a session cookie was present, not whose it was or whether that person was an administrator, so a request with an invented cookie could read and change store data, settings, users and payouts. Every admin route now verifies the signed-in user and their administrator role on the server (<code>401</code> when signed out, <code>403</code> for a normal user). The role is read from the database on every request.</li>
+        <li><strong>Sessions are now signed.</strong> The <code>cp_session</code> cookie used to hold the bare user id, so it could be typed in by hand. It now holds a token signed with your <code>APP_SECRET</code> that expires after 30 days, and it ends when the account's password changes. The cookie is marked <code>Secure</code> automatically over HTTPS.</li>
+        <li><strong>Account routes act only on the signed-in user.</strong> <code>/api/account/profile</code>, <code>claims</code>, <code>alerts</code> and <code>apply-referral</code> took a user id from the request, which let one visitor change or delete another person's account. The id is now always the signed-in user's, and alerts can only be switched off by their owner. Clicks and votes are also attributed from the session, not from the request.</li>
+        <li><strong>Withdrawal requests are protected.</strong> Shoppers now request withdrawals at <code>/api/account/withdrawals</code>. The old path, inside the admin API, could create a request for the first user in the database when nobody was identified, and accepted any amount. The new route uses the signed-in user, rejects an amount above the confirmed balance, and stays blocked on the public demo.</li>
+        <li><strong><code>/api/admin/demo-reset</code> can no longer wipe a live site.</strong> It requires an administrator and only runs when <code>NEXT_PUBLIC_DEMO_MODE</code> is true.</li>
+        <li><strong>Password hashes are no longer sent to the browser</strong> by the admin audit log or withdrawals lists, or by the withdrawal request response.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-changed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg></span> Before you update</div>
+      <ul class="change-list">
+        <li><strong>Set <code>APP_SECRET</code> first.</strong> Sessions are signed with it, so without it nobody can sign in (the server log says <code>APP_SECRET environment variable is not configured</code>). Generate one with <code>openssl rand -hex 32</code>. If you already have one, keep it.</li>
+        <li><strong>Everyone is signed out once.</strong> Cookies from older versions are not accepted. People sign in again and the new session lasts 30 days.</li>
+        <li><strong>Check your admin accounts.</strong> In Admin → Users, make sure every account with the admin role is yours. If you ran an older version on a public site, also consider changing any secrets stored in Admin → Settings, such as the SMTP password.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-added"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Added</div>
+      <ul class="change-list">
+        <li><strong>Tests that keep it fixed</strong> — The test suite now fails if an admin or account route is added without its guard, if an account route trusts a user id from the request, if anything outside the auth code reads the raw cookie, or if a new API route has not been classified as guarded or public on purpose.</li>
+        <li><strong>Documentation</strong> — The Security and API reference sections describe how sign-in and permissions actually work, and troubleshooting covers the sign-out and missing-secret cases.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════ v1.0.6 ═══════════ -->
+  <div class="release">
     <div class="release-dot"></div>
     <div class="release-header">
       <span class="release-version">1.0.6</span>
       <span class="release-date">2026-10-09</span>
-      <span class="release-tag latest">Latest Release</span>
     </div>
 
     <div class="change-group">

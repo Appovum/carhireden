@@ -31,7 +31,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const fetchCatalog = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/admin/i18n");
+      const res = await fetch("/api/i18n");
       const data = await res.json();
       if (data.translations && Array.isArray(data.translations)) {
         const dict: Record<string, Record<string, string>> = {};

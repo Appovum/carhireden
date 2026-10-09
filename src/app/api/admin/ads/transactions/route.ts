@@ -6,8 +6,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { PLACEMENT_PLANS } from "@/app/api/advertise/config/route";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const orders = await db.featuredOrder.findMany({
       include: { store: true, coupon: true },
@@ -75,6 +79,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { orderId, paymentStatus } = body;

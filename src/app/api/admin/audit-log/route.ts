@@ -5,12 +5,17 @@
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const logs = await db.auditLog.findMany({
+      // email only: a bare `user: true` would also send every password hash
       include: {
-        user: true,
+        user: { select: { email: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 100,

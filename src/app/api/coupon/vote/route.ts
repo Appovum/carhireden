@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/currentUser";
 
 function hashIp(ip: string): string {
   return crypto.createHash("sha256").update(ip || "127.0.0.1").digest("hex");
@@ -14,7 +15,11 @@ function hashIp(ip: string): string {
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
-  const { couponId, voteType, userId } = body;
+  const { couponId, voteType } = body;
+
+  // Open to anonymous visitors (counted per IP). A signed-in visitor votes as
+  // themselves; a userId in the body is ignored so nobody can vote as someone else.
+  const userId = (await getSessionUser())?.id ?? null;
 
   if (!couponId || (voteType !== "up" && voteType !== "down")) {
     return NextResponse.json({ error: "Invalid vote parameters." }, { status: 400 });

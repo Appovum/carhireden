@@ -6,9 +6,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { DEFAULT_PAGES } from "@/lib/constants/defaultPages";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const keys = ["page_about", "page_contact", "page_privacy", "page_terms", "contact_messages"];
     const dbSettings = await db.setting.findMany({
@@ -40,6 +44,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await request.json();
     const { pageKey, data, action, messageId } = body;

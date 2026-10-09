@@ -5,8 +5,12 @@
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     // 1. Ensure default network records exist in DB
     let cjNet = await db.network.findUnique({ where: { slug: "cj" } });
@@ -119,6 +123,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { sourceId } = body;

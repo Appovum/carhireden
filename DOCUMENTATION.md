@@ -1,6 +1,6 @@
 # CouponPilot — Documentation
 
-**Version 1.0.6** · Last updated: October 2026
+**Version 1.0.7** · Last updated: October 2026
 
 ---
 
@@ -980,17 +980,19 @@ CouponPilot implements defense-in-depth security:
 
 ### Authentication
 
-- **Session-based auth** with secure, HTTP-only cookies (`cp_session`)
+- **Signed sessions** — The `cp_session` cookie holds a token signed with your `APP_SECRET` (HMAC-SHA256). It is HTTP-only, `SameSite=Lax`, marked `Secure` whenever the site is served over HTTPS, and expires after 30 days. It cannot be guessed or edited: a changed or invented cookie is simply not a valid session.
+- **Passwords end sessions** — Changing a password signs out every other session for that account. The browser that changed it stays signed in.
 - **Google OAuth** integration for social login
 - **Email verification** required before cashback features
-- **Password reset** via secure token emails
-- **Session rotation** on login
+- **Password reset** via secure, signed token emails (also signed with `APP_SECRET`)
 
 ### Authorization
 
-- **Edge middleware** protects all `/admin`, `/account`, `/wallet`, `/withdraw` routes
-- **Role-based access** — Admin users have separate capabilities from regular users
-- **API route guards** on all admin endpoints
+- **Every admin API route checks the role on the server.** A request without a valid session gets `401`; a signed-in shopper gets `403`. The role is read from the database on every request, never from the cookie.
+- **Account API routes act only on the signed-in user.** A `userId` sent in the body or URL is ignored, so one shopper cannot read or change another's profile, alerts, claims, referral or withdrawals.
+- **Edge middleware** is a quick first gate in front of `/admin`, `/account`, `/wallet`, `/withdraw`. It is not the security boundary; the checks above are.
+- **Tests enforce it.** The test suite fails if an admin or account route is added without its guard, or if a new API route is not classified as guarded or public on purpose.
+- **`/api/admin/demo-reset`** deletes data and only works when `NEXT_PUBLIC_DEMO_MODE=true`.
 
 ### Encryption
 
@@ -1159,16 +1161,19 @@ CouponPilot exposes both public and admin API endpoints.
 
 ### Account Endpoints (Authenticated)
 
+All account endpoints act on the signed-in user and return `401` without a valid session.
+
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/account/wallet` | Get wallet balance and ledger |
-| `POST` | `/api/account/withdraw` | Request withdrawal |
-| `GET` | `/api/account/alerts` | List user's deal alerts |
-| `POST` | `/api/account/alerts` | Create a deal alert |
+| `GET` / `POST` | `/api/account/alerts` | List, create or switch off the user's deal alerts |
+| `POST` | `/api/account/claims` | List or file missing-cashback claims |
+| `POST` | `/api/account/profile` | Update name, password or payout preference; delete the account |
+| `POST` | `/api/account/apply-referral` | Link a referral code |
+| `POST` | `/api/account/withdrawals` | Request a withdrawal (cannot exceed the confirmed balance) |
 
 ### Admin Endpoints (Admin Role Required)
 
-All admin endpoints are under `/api/admin/` and require the `admin` role.
+All admin endpoints are under `/api/admin/` and require the `admin` role: `401` without a session, `403` for a normal user.
 
 | Area | Endpoints |
 |---|---|
@@ -1230,9 +1235,19 @@ All admin endpoints are under `/api/admin/` and require the `admin` role.
 - **Cause:** Invalid `DATABASE_URL` in `.env`
 - **Fix:** Verify your PostgreSQL connection string. For Docker, ensure the database container is running (`docker compose ps`).
 
+#### Everyone was signed out after updating to 1.0.7
+
+- **Cause:** Before 1.0.7 the session cookie held the bare user id, which anyone could type into their browser to be that user. From 1.0.7 it holds a signed token, so cookies from older versions are no longer accepted.
+- **Fix:** Nothing to fix. Everyone signs in once more, and the new sessions last 30 days. Make sure `APP_SECRET` is set before you update.
+
+#### "Sign-in is temporarily unavailable"
+
+- **Cause:** `APP_SECRET` is not set, so the server cannot sign a session. The server log says `APP_SECRET environment variable is not configured`.
+- **Fix:** Set `APP_SECRET` in `.env` (generate one with `openssl rand -hex 32`) and restart the app.
+
 #### "APP_SECRET is required" / password reset emails never arrive
 
-- **Cause:** Missing or empty `APP_SECRET` environment variable. It is used to encrypt stored credentials and to sign password reset links. From 1.0.6 there is no built-in default: without it, saving credentials fails and no reset email is sent. The forgot-password page still shows its normal confirmation message (so it cannot be used to find out which emails are registered), and the real cause is written to the server log as `APP_SECRET environment variable is not configured`.
+- **Cause:** Missing or empty `APP_SECRET` environment variable. It is used to encrypt stored credentials and to sign password reset links. From 1.0.6 there is no built-in default: without it, saving credentials fails and no reset email is sent, and from 1.0.7 nobody can sign in, because sessions are signed with it. The forgot-password page still shows its normal confirmation message (so it cannot be used to find out which emails are registered), and the real cause is written to the server log as `APP_SECRET environment variable is not configured`.
 - **Fix:** Set a random secret in `.env` (generate one with `openssl rand -hex 32`) and restart the app. Do not change it afterwards: encrypted data and any reset links already sent depend on it.
 
 #### "Prisma client not generated"
@@ -1317,7 +1332,7 @@ CouponPilot is licensed under the **Envato Regular License**. Each license permi
 
 <div align="center">
 
-**CouponPilot v1.0.6** · Built with ❤️ using Next.js 16, TypeScript, Prisma & Tailwind
+**CouponPilot v1.0.7** · Built with ❤️ using Next.js 16, TypeScript, Prisma & Tailwind
 
 © 2026 CouponPilot. All rights reserved.
 

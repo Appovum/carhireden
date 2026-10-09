@@ -6,8 +6,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { encryptSecret, decryptSecret } from "@/lib/security/crypto";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const settings = await db.setting.findMany();
   const result: Record<string, any> = {};
 
@@ -23,6 +27,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const body = await request.json();
   const { key, value, category = "general", isEncrypted = false } = body;
 

@@ -1,25 +1,31 @@
 // ═══════════════════════════════════════════════════════════════════
-// CouponPilot — Admin & Shopper API: Withdrawal Management
+// CouponPilot — Admin API: Withdrawal Management
 // Route: GET/POST /api/admin/withdrawals
+// Shoppers request withdrawals through POST /api/account/withdrawals.
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { approveAndPayWithdrawal } from "@/lib/ledger/withdrawals";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const searchParams = request.nextUrl.searchParams;
   const status = searchParams.get("status");
 
-  const whereClause: any = {};
+  const whereClause: Prisma.WithdrawalWhereInput = {};
   if (status && status !== "all") {
-    whereClause.status = status;
+    whereClause.status = status as Prisma.WithdrawalWhereInput["status"];
   }
 
   const withdrawals = await db.withdrawal.findMany({
     where: whereClause,
-    include: { user: true },
+    // the page needs the email only; never send the whole user row (it has the password hash)
+    include: { user: { select: { id: true, email: true, name: true } } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -27,20 +33,14 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await request.json().catch(() => ({}));
-    const {
-      action = "request",
-      withdrawalId,
-      userId,
-      amountMinor,
-      payoutChannel,
-      payoutMethod,
-      payoutTarget,
-      payoutDetailsEncrypted,
-    } = body;
+    const { action, withdrawalId } = body;
 
-    // Admin Action: Approve / Mark Paid
+    // Admin action: approve / mark paid
     if (action === "approve" || action === "paid") {
       if (!withdrawalId) {
         return NextResponse.json({ error: "Withdrawal ID required for approval." }, { status: 400 });
@@ -58,94 +58,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, withdrawal: updated });
     }
 
-    // Shopper Action: Submit New Withdrawal Request
-    let targetUserId = userId;
-    let targetEmail = payoutTarget || payoutDetailsEncrypted;
-
-    if (!targetUserId) {
-      const cookieStore = await cookies();
-      const sessionCookie = cookieStore.get("cp_session")?.value;
-      if (sessionCookie) {
-        targetUserId = sessionCookie;
-      }
-    }
-
-    if (!targetUserId && targetEmail) {
-      const u = await db.user.findFirst({ where: { email: targetEmail } });
-      if (u) {
-        targetUserId = u.id;
-      }
-    }
-
-    if (!targetUserId) {
-      const firstUser = await db.user.findFirst();
-      if (firstUser) {
-        targetUserId = firstUser.id;
-        targetEmail = targetEmail || firstUser.email;
-      }
-    }
-
-    if (!targetUserId) {
-      return NextResponse.json({ success: false, message: "User required for withdrawal." }, { status: 400 });
-    }
-
-    const targetUserObj = await db.user.findUnique({ where: { id: targetUserId } });
-    if (targetUserObj && !targetEmail) {
-      targetEmail = targetUserObj.email;
-    }
-
-    const requestAmountMinor = amountMinor && amountMinor > 0 ? amountMinor : 945; // default fallback if minor units 0
-
-    // Check if user already has a pending withdrawal request
-    const existingRequested = await db.withdrawal.findFirst({
-      where: { userId: targetUserId, status: "requested" },
-    });
-
-    if (existingRequested) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "A withdrawal request is already pending review for your account.",
-          withdrawal: existingRequested,
-        },
-        { status: 400 }
-      );
-    }
-
-    const withdrawal = await db.withdrawal.create({
-      data: {
-        userId: targetUserId,
-        amountMinor: requestAmountMinor,
-        currency: "USD",
-        payoutMethod: payoutChannel || payoutMethod || "PAYPAL",
-        payoutDetailsEncrypted: targetEmail || "shopper@couponpilot.com",
-        status: "requested",
-      },
-      include: { user: true },
-    });
-
-    try {
-      await db.auditLog.create({
-        data: {
-          userId: targetUserId,
-          action: "withdrawal_requested",
-          resource: "withdrawal",
-          resourceId: withdrawal.id,
-          detailsJson: JSON.stringify({
-            amountMinor: requestAmountMinor,
-            payoutMethod: payoutChannel || payoutMethod || "PAYPAL",
-            payoutTarget: targetEmail,
-          }),
-        },
-      });
-    } catch (e) {}
-
-    return NextResponse.json({
-      success: true,
-      message: "Withdrawal request submitted successfully!",
-      withdrawal,
-    });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, message: err.message || "Failed to process withdrawal." }, { status: 500 });
+    // Shoppers no longer request withdrawals here; see /api/account/withdrawals.
+    return NextResponse.json(
+      { success: false, message: "Unsupported action. Shoppers request withdrawals at /api/account/withdrawals." },
+      { status: 400 }
+    );
+  } catch (err: unknown) {
+    return NextResponse.json(
+      { success: false, message: err instanceof Error ? err.message : "Failed to process withdrawal." },
+      { status: 500 }
+    );
   }
 }

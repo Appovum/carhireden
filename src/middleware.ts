@@ -1,9 +1,18 @@
 // ═══════════════════════════════════════════════════════════════════
 // CouponPilot — Edge Auth Middleware
-// Secures all /admin routes and /api/admin endpoints against unauthenticated access.
+// A cheap first gate in front of /admin, /account, /wallet and /withdraw.
+//
+// This is NOT the security boundary. It only turns away requests whose cookie
+// is missing or is not even shaped like a session token (for example the old
+// bare user id), so signed-out visitors are redirected quickly. Whether a
+// token is genuine, and who it belongs to, is decided in the route handlers
+// and pages by lib/auth/guards.ts and lib/auth/requireAuth.ts.
 // ═══════════════════════════════════════════════════════════════════
 
 import { NextResponse, NextRequest } from "next/server";
+
+// <base64url payload>.<43-character base64url HMAC-SHA256 signature>
+const SESSION_TOKEN_SHAPE = /^[A-Za-z0-9_-]{20,1500}\.[A-Za-z0-9_-]{43}$/;
 
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -20,7 +29,7 @@ export function middleware(request: NextRequest) {
   if (isProtected) {
     const sessionCookie = request.cookies.get("cp_session")?.value;
 
-    if (!sessionCookie) {
+    if (!sessionCookie || !SESSION_TOKEN_SHAPE.test(sessionCookie)) {
       if (path.startsWith("/api/")) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Authentication required." },

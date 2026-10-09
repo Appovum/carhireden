@@ -15,10 +15,14 @@ import {
   missingCredentialFields,
   serializeCredentials,
 } from "@/lib/connectors/credentials";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 const connector = new CJConnector();
 
 export async function POST() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   // Admin → Networks first, .env as fallback.
   const credentials = await getNetworkCredentials("cj");
   const missing = missingCredentialFields("cj", credentials);

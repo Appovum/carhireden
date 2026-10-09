@@ -6,14 +6,12 @@ import { useSiteSettings } from "@/hooks";
 import { formatCurrency } from "@/utils/format";
 
 interface WithdrawClientProps {
-  userId: string;
   userEmail: string;
   confirmedBalance: number;
   hasPendingWithdrawal?: boolean;
 }
 
 export function WithdrawClient({
-  userId,
   userEmail,
   confirmedBalance,
   hasPendingWithdrawal = false,
@@ -79,12 +77,11 @@ export function WithdrawClient({
     const amountMinor = Math.round(parseFloat(amount || "0") * 100);
 
     try {
-      const res = await fetch("/api/admin/withdrawals", {
+      // The server identifies you from your session; no user id is sent.
+      const res = await fetch("/api/account/withdrawals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "request",
-          userId,
           amountMinor,
           payoutChannel,
           payoutTarget,

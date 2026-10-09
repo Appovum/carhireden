@@ -5,12 +5,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireUserApi } from "@/lib/auth/guards";
 
-export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
-  if (!userId) {
-    return NextResponse.json({ success: false, alerts: [] });
-  }
+export async function GET() {
+  const auth = await requireUserApi();
+  if (!auth.ok) return auth.response;
+  // Always the signed-in user's alerts, never a user id taken from the URL.
+  const userId = auth.user.id;
 
   const alerts = await db.alert.findMany({
     where: { userId, isEnabled: true },
@@ -22,15 +23,27 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireUserApi();
+  if (!auth.ok) return auth.response;
+  // The signed-in user, regardless of any userId in the body.
+  const userId = auth.user.id;
+
   try {
     const body = await request.json().catch(() => ({}));
-    const { action = "subscribe", userId, email, storeId, keyword, alertId } = body;
+    const { action = "subscribe", email, storeId, keyword, alertId } = body;
 
     // Handle Unsubscribe
     if (action === "unsubscribe") {
       if (!alertId) {
         return NextResponse.json({ success: false, message: "Alert ID required for unsubscribe." }, { status: 400 });
       }
+      // You can only switch off your own alerts. Alerts created by email
+      // without an account have no owner and keep working with their link.
+      const existingAlert = await db.alert.findUnique({ where: { id: alertId } });
+      if (!existingAlert || (existingAlert.userId && existingAlert.userId !== userId)) {
+        return NextResponse.json({ success: false, message: "Alert not found." }, { status: 404 });
+      }
+
       await db.alert.update({
         where: { id: alertId },
         data: { isEnabled: false },
@@ -53,9 +66,6 @@ export async function POST(request: NextRequest) {
 
     // Handle List
     if (action === "list") {
-      if (!userId) {
-        return NextResponse.json({ success: false, message: "User ID required." }, { status: 400 });
-      }
       const alerts = await db.alert.findMany({
         where: { userId, isEnabled: true },
         include: { store: true },

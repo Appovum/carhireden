@@ -6,15 +6,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { invalidateUserBalanceCache } from "@/lib/ledger/balance";
+import { requireUserApi } from "@/lib/auth/guards";
 
 export async function POST(request: NextRequest) {
+  const auth = await requireUserApi();
+  if (!auth.ok) return auth.response;
+  // The referral is applied to the signed-in user only.
+  const userId = auth.user.id;
+
   try {
     const body = await request.json().catch(() => ({}));
-    const { userId, referralCode } = body;
+    const { referralCode } = body;
 
-    if (!userId || !referralCode || typeof referralCode !== "string") {
+    if (!referralCode || typeof referralCode !== "string") {
       return NextResponse.json(
-        { success: false, message: "User ID and referral code are required." },
+        { success: false, message: "A referral code is required." },
         { status: 400 }
       );
     }

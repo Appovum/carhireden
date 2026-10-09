@@ -6,8 +6,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import crypto from "crypto";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const searchParams = request.nextUrl.searchParams;
   const storeId = searchParams.get("storeId");
   const status = searchParams.get("status");
@@ -26,6 +30,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const body = await request.json();
   const { storeId, title, discountText, code, type = "code", status = "active", destinationUrl, expiresAt } = body;
 
@@ -54,6 +61,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const body = await request.json();
   const { ids, action, ...singleUpdates } = body;
 

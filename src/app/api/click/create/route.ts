@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { detectBot } from "@/lib/botDetector";
+import { getSessionUser } from "@/lib/auth/currentUser";
 
 function hashIp(ip: string): string {
   return crypto.createHash("sha256").update(ip || "127.0.0.1").digest("hex");
@@ -15,7 +16,12 @@ function hashIp(ip: string): string {
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
-  const { couponId, storeId, userId } = body;
+  const { couponId, storeId } = body;
+
+  // Open to anonymous visitors. A signed-in visitor is identified by their
+  // session; a userId sent in the body is ignored so clicks (and the cashback
+  // that follows them) cannot be attributed to someone else.
+  const userId = (await getSessionUser())?.id ?? null;
 
   let store = storeId
     ? await db.store.findUnique({ where: { id: storeId } })

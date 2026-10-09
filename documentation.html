@@ -491,7 +491,7 @@ code:not(pre code) {
     CouponPilot
   </a>
   <div class="header-right">
-    <span class="version-badge">v1.0.6</span>
+    <span class="version-badge">v1.0.7</span>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button>
   </div>
 </header>
@@ -1607,11 +1607,20 @@ npm start</code></pre>
 
     <h3>Authentication</h3>
     <ul>
-      <li>Secure, HTTP-only session cookies (<code>cp_session</code>)</li>
+      <li><strong>Signed sessions.</strong> The <code>cp_session</code> cookie holds a token signed with your <code>APP_SECRET</code> (HMAC-SHA256). It is HTTP-only, <code>SameSite=Lax</code>, marked <code>Secure</code> whenever the site is served over HTTPS, and expires after 30 days. A changed or invented cookie is simply not a valid session.</li>
+      <li><strong>Passwords end sessions.</strong> Changing a password signs out every other session for that account; the browser that changed it stays signed in.</li>
       <li>Google OAuth integration for social login</li>
       <li>Email verification required for cashback features</li>
-      <li>Password reset via secure token emails</li>
-      <li>Session rotation on login</li>
+      <li>Password reset via secure, signed token emails (also signed with <code>APP_SECRET</code>)</li>
+    </ul>
+
+    <h3>Authorization</h3>
+    <ul>
+      <li><strong>Every admin API route checks the role on the server.</strong> No valid session gets <code>401</code>; a signed-in shopper gets <code>403</code>. The role is read from the database on every request, never from the cookie.</li>
+      <li><strong>Account API routes act only on the signed-in user.</strong> A <code>userId</code> sent in the body or URL is ignored, so one shopper cannot read or change another's profile, alerts, claims, referral or withdrawals.</li>
+      <li><strong>Edge middleware</strong> is a quick first gate in front of <code>/admin</code>, <code>/account</code>, <code>/wallet</code>, <code>/withdraw</code>. It is not the security boundary; the checks above are.</li>
+      <li><strong>Tests enforce it.</strong> The test suite fails if an admin or account route is added without its guard, or if a new API route is not classified as guarded or public on purpose.</li>
+      <li><code>/api/admin/demo-reset</code> deletes data and only works when <code>NEXT_PUBLIC_DEMO_MODE=true</code>.</li>
     </ul>
 
     <h3>Encryption at Rest</h3>
@@ -1727,14 +1736,16 @@ npm start</code></pre>
     </div>
 
     <h3>Account Endpoints <span class="tag">Authenticated</span></h3>
+    <p>All account endpoints act on the signed-in user and return <code>401</code> without a valid session.</p>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><span class="tag green">GET</span></td><td><code>/api/account/wallet</code></td><td>Get wallet balance and ledger</td></tr>
-          <tr><td><span class="tag blue">POST</span></td><td><code>/api/account/withdraw</code></td><td>Request withdrawal</td></tr>
-          <tr><td><span class="tag green">GET</span></td><td><code>/api/account/alerts</code></td><td>List user's deal alerts</td></tr>
-          <tr><td><span class="tag blue">POST</span></td><td><code>/api/account/alerts</code></td><td>Create a deal alert</td></tr>
+          <tr><td><span class="tag green">GET</span> <span class="tag blue">POST</span></td><td><code>/api/account/alerts</code></td><td>List, create or switch off the user's deal alerts</td></tr>
+          <tr><td><span class="tag blue">POST</span></td><td><code>/api/account/claims</code></td><td>List or file missing-cashback claims</td></tr>
+          <tr><td><span class="tag blue">POST</span></td><td><code>/api/account/profile</code></td><td>Update name, password or payout preference; delete the account</td></tr>
+          <tr><td><span class="tag blue">POST</span></td><td><code>/api/account/apply-referral</code></td><td>Link a referral code</td></tr>
+          <tr><td><span class="tag blue">POST</span></td><td><code>/api/account/withdrawals</code></td><td>Request a withdrawal (cannot exceed the confirmed balance)</td></tr>
         </tbody>
       </table>
     </div>
@@ -1819,8 +1830,24 @@ npm start</code></pre>
     <div class="callout callout-warning">
       <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
       <div>
+        <p><strong>Everyone was signed out after updating to 1.0.7</strong></p>
+        <p>Before 1.0.7 the session cookie held the bare user id, which anyone could type into their browser to be that user. From 1.0.7 it holds a signed token, so cookies from older versions are no longer accepted. Nothing to fix: everyone signs in once more, and the new sessions last 30 days. Make sure <code>APP_SECRET</code> is set before you update.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div>
+        <p><strong>"Sign-in is temporarily unavailable"</strong></p>
+        <p><code>APP_SECRET</code> is not set, so the server cannot sign a session. The server log says <code>APP_SECRET environment variable is not configured</code>. Set it in <code>.env</code> (generate one with <code>openssl rand -hex 32</code>) and restart the app.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div>
         <p><strong>"APP_SECRET is required" / password reset emails never arrive</strong></p>
-        <p><code>APP_SECRET</code> is missing or empty. It encrypts stored credentials and signs password reset links. From 1.0.6 there is no built-in default: without it, saving credentials fails and no reset email is sent. The forgot-password page still shows its normal confirmation message (so it cannot be used to find out which emails are registered), and the real cause is written to the server log as <code>APP_SECRET environment variable is not configured</code>. Set a random secret in <code>.env</code> (generate one with <code>openssl rand -hex 32</code>) and restart the app. Do not change it afterwards: encrypted data and reset links already sent depend on it.</p>
+        <p><code>APP_SECRET</code> is missing or empty. It encrypts stored credentials and signs password reset links. From 1.0.6 there is no built-in default: without it, saving credentials fails and no reset email is sent, and from 1.0.7 nobody can sign in, because sessions are signed with it. The forgot-password page still shows its normal confirmation message (so it cannot be used to find out which emails are registered), and the real cause is written to the server log as <code>APP_SECRET environment variable is not configured</code>. Set a random secret in <code>.env</code> (generate one with <code>openssl rand -hex 32</code>) and restart the app. Do not change it afterwards: encrypted data and reset links already sent depend on it.</p>
       </div>
     </div>
 
@@ -1903,7 +1930,7 @@ npm start</code></pre>
   <!-- FOOTER -->
   <footer class="doc-footer">
     <div class="footer-brand">CouponPilot</div>
-    <p>Version 1.0.6 · Built with Next.js 16, TypeScript, Prisma &amp; Tailwind</p>
+    <p>Version 1.0.7 · Built with Next.js 16, TypeScript, Prisma &amp; Tailwind</p>
     <p style="margin-top:8px;">© 2026 CouponPilot. All rights reserved.</p>
   </footer>
 

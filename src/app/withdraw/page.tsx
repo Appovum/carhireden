@@ -30,7 +30,6 @@ export default async function WithdrawPage() {
 
       <section className="bg-paper-raised border border-rule rounded-[4px] p-6 sm:p-8 space-y-6">
         <WithdrawClient
-          userId={user.id}
           userEmail={user.email}
           confirmedBalance={balance}
           hasPendingWithdrawal={!!pendingWithdrawal}

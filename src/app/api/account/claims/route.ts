@@ -5,14 +5,16 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { submitMissingCashbackClaim, getUserMissingCashbackClaims } from "@/lib/ledger/claims";
+import { requireUserApi } from "@/lib/auth/guards";
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => ({}));
-  const { action, userId, storeId, clickId, orderId, orderNumber, purchaseAmountMinor, currency = "USD" } = body;
+  const auth = await requireUserApi();
+  if (!auth.ok) return auth.response;
+  // Claims are always filed for, and listed for, the signed-in user.
+  const userId = auth.user.id;
 
-  if (!userId) {
-    return NextResponse.json({ success: false, message: "User ID required." }, { status: 400 });
-  }
+  const body = await request.json().catch(() => ({}));
+  const { action, storeId, clickId, orderId, orderNumber, purchaseAmountMinor, currency = "USD" } = body;
 
   if (action === "list") {
     const claims = await getUserMissingCashbackClaims(userId);

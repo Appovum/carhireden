@@ -12,8 +12,12 @@ import {
   parseStoredCredentials,
   serializeCredentials,
 } from "@/lib/connectors/credentials";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const rawNetworks = await db.network.findMany({
       orderBy: { name: "asc" },
@@ -52,6 +56,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   const demoBlocked = guardDemoMode();
   if (demoBlocked) return demoBlocked;
 

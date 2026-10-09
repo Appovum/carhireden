@@ -6,8 +6,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendCampaignApprovedEmail, sendCampaignLiveEmail } from "@/lib/email";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function GET() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const orders = await db.featuredOrder.findMany({
       where: {
@@ -48,6 +52,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { orderId, action } = body;

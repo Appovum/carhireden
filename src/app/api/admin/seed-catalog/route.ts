@@ -7,8 +7,12 @@
 import { NextResponse } from "next/server";
 import { runCatalogSeeder } from "@/lib/seed/catalogSeeder";
 import { guardDemoMode } from "@/lib/demo";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   // Check Demo Mode
   const demoGuard = guardDemoMode();
   if (demoGuard) return demoGuard;

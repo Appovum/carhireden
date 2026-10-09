@@ -7,8 +7,12 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { db } from "@/lib/db";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function POST(req: Request) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
     const { recipientEmail, smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom, smtpSecure } = body;

@@ -13,10 +13,14 @@ import { getDomainLogoUrl } from "@/lib/importer/normalizer";
 import { processAndSaveStoreLogo } from "@/lib/importer/logoProcessor";
 import { mapToCanonicalCategory } from "@/lib/importer/categoryNormalizer";
 import { getNetworkCredentials, missingCredentialFields, serializeCredentials } from "@/lib/connectors/credentials";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 const connector = new AwinConnector();
 
 export async function POST() {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   // Admin → Networks first, .env as fallback.
   const credentials = await getNetworkCredentials("awin");
   const missing = missingCredentialFields("awin", credentials);

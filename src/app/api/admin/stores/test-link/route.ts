@@ -8,8 +8,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { buildAffiliateLink, LinkStrategy } from "@/lib/linkBuilder";
 import { decryptSecret } from "@/lib/security/crypto";
+import { requireAdminApi } from "@/lib/auth/guards";
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApi();
+  if (!auth.ok) return auth.response;
+
   try {
     const { storeId } = await request.json().catch(() => ({}));
 
