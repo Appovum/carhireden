@@ -114,13 +114,39 @@ a{color:var(--accent);text-decoration:none}
 
 <div class="content">
 
-  <!-- ═══════════ v1.0.2 ═══════════ -->
+  <!-- ═══════════ v1.0.3 ═══════════ -->
   <div class="release latest">
+    <div class="release-dot"></div>
+    <div class="release-header">
+      <span class="release-version">1.0.3</span>
+      <span class="release-date">2026-10-09</span>
+      <span class="release-tag latest">Latest Release</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-fixed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Fixed</div>
+      <ul class="change-list">
+        <li><strong>Monthly evergreen pages returned HTTP 500</strong> — URLs such as <code>/nike-coupons-august-2026</code> failed with <code>Could not resolve param value for segment</code>. The route folder <code>[store]-coupons-[month]-[year]</code> is not a valid Next.js dynamic segment. These URLs are now rewritten to an internal <code>/seo-coupons/[slug]</code> route.</li>
+        <li><strong>Unknown URLs returned 500 instead of 404</strong> — The same malformed folder acted as a catch-all, so any unknown single-segment URL (for example <code>/this-page-does-not-exist</code>) returned a 500 error. They now return a normal 404.</li>
+        <li><strong>Invalid month or year is a real 404</strong> — Only real month names and years from 2020 onward are accepted, so <code>/nike-coupons-foo-2026</code> no longer produces a page.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-added"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Added</div>
+      <ul class="change-list">
+        <li><strong>Month and year in the page title</strong> — Monthly pages now set a title and description such as “Nike Coupons &amp; Promo Codes — August 2026” and a canonical link built from <code>NEXT_PUBLIC_APP_URL</code>. The meta helpers were imported by this page before but never used.</li>
+        <li><strong>Documentation</strong> — Monthly evergreen pages are documented under SEO Features, including the URL rules.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════ v1.0.2 ═══════════ -->
+  <div class="release">
     <div class="release-dot"></div>
     <div class="release-header">
       <span class="release-version">1.0.2</span>
       <span class="release-date">2026-10-01</span>
-      <span class="release-tag latest">Latest Release</span>
     </div>
 
     <div class="change-group">

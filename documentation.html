@@ -491,7 +491,7 @@ code:not(pre code) {
     CouponPilot
   </a>
   <div class="header-right">
-    <span class="version-badge">v1.0.2</span>
+    <span class="version-badge">v1.0.3</span>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button>
   </div>
 </header>
@@ -1489,8 +1489,17 @@ npm start</code></pre>
       <li><code>/store/[slug]</code> — Store coupon page</li>
       <li><code>/category/[slug]</code> — Category listing</li>
       <li><code>/coupon/[slug]</code> — Individual coupon detail</li>
-      <li><code>/[store]-coupons-[month]-[year]</code> — Monthly evergreen pages</li>
+      <li><code>/[store]-coupons-[month]-[year]</code> — Monthly evergreen pages (see below)</li>
       <li><code>/search</code> — Full-text search results</li>
+    </ul>
+
+    <h3>Monthly Evergreen Pages</h3>
+    <p>A store's page is also served at <code>/&lt;store-slug&gt;-coupons-&lt;month&gt;-&lt;year&gt;</code>, for example <code>/nike-coupons-august-2026</code>. These pages show the store's live coupons with a title and description that include the month and year (<code>Nike Coupons &amp; Promo Codes — August 2026</code>), and a canonical link set from <code>NEXT_PUBLIC_APP_URL</code>.</p>
+    <ul>
+      <li><strong>Valid URLs:</strong> <code>&lt;store-slug&gt;</code> must be the slug of an active store, <code>&lt;month&gt;</code> a full English month name (<code>january</code> … <code>december</code>), and <code>&lt;year&gt;</code> between 2020 and next year. Matching is case-insensitive.</li>
+      <li><strong>Anything else is a 404.</strong> A URL that is not in this shape (<code>/nike-coupons-foo-2026</code>, <code>/nike-coupons-august-2019</code>) returns a real HTTP 404. A URL in the right shape for a store that does not exist or is inactive shows the 404 page marked <code>noindex</code>.</li>
+      <li><strong>How it works:</strong> <code>next.config.ts</code> rewrites URLs of this shape to the internal route <code>/seo-coupons/[slug]</code>; validation lives in <code>src/lib/seo/programmaticRoute.ts</code>. If you add a store, its monthly pages work immediately, with no sitemap or build step.</li>
+      <li>These URLs are not added to the sitemap automatically. Link to them from your own content or add them to a custom sitemap if you want them crawled.</li>
     </ul>
   </section>
 
@@ -1842,7 +1851,7 @@ npm start</code></pre>
   <!-- FOOTER -->
   <footer class="doc-footer">
     <div class="footer-brand">CouponPilot</div>
-    <p>Version 1.0.2 · Built with Next.js 16, TypeScript, Prisma &amp; Tailwind</p>
+    <p>Version 1.0.3 · Built with Next.js 16, TypeScript, Prisma &amp; Tailwind</p>
     <p style="margin-top:8px;">© 2026 CouponPilot. All rights reserved.</p>
   </footer>
 

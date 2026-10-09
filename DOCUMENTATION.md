@@ -1,6 +1,6 @@
 # CouponPilot — Documentation
 
-**Version 1.0.2** · Last updated: October 2026
+**Version 1.0.3** · Last updated: October 2026
 
 ---
 
@@ -844,8 +844,17 @@ Overridable per store, per coupon, and per category.
 - `/store/[slug]` — Store coupon page
 - `/category/[slug]` — Category listing
 - `/coupon/[slug]` — Individual coupon detail
-- `/[store]-coupons-[month]-[year]` — Monthly evergreen pages
+- `/[store]-coupons-[month]-[year]` — Monthly evergreen pages (see below)
 - `/search` — Full-text search results
+
+#### Monthly evergreen pages
+
+A store's page is also served at `/<store-slug>-coupons-<month>-<year>`, for example `/nike-coupons-august-2026`. These pages show the store's live coupons with a title and description that include the month and year (`Nike Coupons & Promo Codes — August 2026`), and a canonical link set from `NEXT_PUBLIC_APP_URL`.
+
+- **Valid URLs:** `<store-slug>` must be the slug of an active store, `<month>` a full English month name (`january` … `december`), and `<year>` between 2020 and next year. Matching is case-insensitive.
+- **Anything else is a 404.** A URL that is not in this shape (`/nike-coupons-foo-2026`, `/nike-coupons-august-2019`) returns a real HTTP 404. A URL in the right shape for a store that does not exist or is inactive shows the 404 page marked `noindex`.
+- **How it works:** `next.config.ts` rewrites URLs of this shape to the internal route `/seo-coupons/[slug]`; validation lives in `src/lib/seo/programmaticRoute.ts`. If you add a store, its monthly pages work immediately, with no sitemap or build step.
+- These URLs are not added to the sitemap automatically. Link to them from your own content or add them to a custom sitemap if you want them crawled.
 
 ### Additional SEO
 
@@ -1269,7 +1278,7 @@ CouponPilot is licensed under the **Envato Regular License**. Each license permi
 
 <div align="center">
 
-**CouponPilot v1.0.2** · Built with ❤️ using Next.js 16, TypeScript, Prisma & Tailwind
+**CouponPilot v1.0.3** · Built with ❤️ using Next.js 16, TypeScript, Prisma & Tailwind
 
 © 2026 CouponPilot. All rights reserved.
 
