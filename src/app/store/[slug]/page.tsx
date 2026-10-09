@@ -1,15 +1,31 @@
 // ═══════════════════════════════════════════════════════════════════
 // Store Page — /store/[slug]
 // Server component querying Prisma DB and passing real data to StorePageClient.
+//
+// The store lookup happens first, before anything streams, so an unknown
+// store returns a real HTTP 404. Only after that does the page stream its
+// skeleton while the coupons and ads load.
 // ═══════════════════════════════════════════════════════════════════
 
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { Coupon, Store } from "@/types";
 import { StorePageClient } from "@/components/StorePageClient";
+import { StorePageSkeleton } from "@/components/StorePageSkeleton";
 import { findBestAdCreative } from "@/lib/ads";
 
 export const dynamic = "force-dynamic";
+
+async function findStore(slug: string) {
+  const include = { categories: { include: { category: true } } };
+  return (
+    (await db.store.findUnique({ where: { slug }, include })) ??
+    (await db.store.findUnique({ where: { id: slug }, include }))
+  );
+}
+
+type DbStore = NonNullable<Awaited<ReturnType<typeof findStore>>>;
 
 export default async function StorePage({
   params,
@@ -18,26 +34,19 @@ export default async function StorePage({
 }) {
   const { slug } = await params;
 
-  let dbStore = await db.store.findUnique({
-    where: { slug },
-    include: {
-      categories: { include: { category: true } },
-    },
-  });
-
-  if (!dbStore) {
-    dbStore = await db.store.findUnique({
-      where: { id: slug },
-      include: {
-        categories: { include: { category: true } },
-      },
-    });
-  }
-
+  const dbStore = await findStore(slug);
   if (!dbStore || !dbStore.isActive) {
     notFound();
   }
 
+  return (
+    <Suspense fallback={<StorePageSkeleton />}>
+      <StoreContent dbStore={dbStore} />
+    </Suspense>
+  );
+}
+
+async function StoreContent({ dbStore }: { dbStore: DbStore }) {
   const dbCoupons = await db.coupon.findMany({
     where: { storeId: dbStore.id },
     orderBy: { createdAt: "desc" },
@@ -61,8 +70,8 @@ export default async function StorePage({
     storeName: dbStore.name,
     storeSlug: dbStore.slug,
     storeLogo: dbStore.logoUrl || "",
-    type: c.type as any,
-    status: c.status as any,
+    type: c.type as Coupon["type"],
+    status: c.status as Coupon["status"],
     code: c.code || undefined,
     title: c.title,
     description: c.description || undefined,

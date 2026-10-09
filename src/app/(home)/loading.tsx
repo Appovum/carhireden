@@ -1,5 +1,8 @@
 // ═══════════════════════════════════════════════════════════════════
 // Home Page Loading Skeleton — Zero layout shift
+// Lives in the (home) route group so it applies to "/" only. A loading.tsx at
+// the app root wraps every page below it in Suspense, which makes notFound()
+// return HTTP 200 (a soft 404) instead of a real 404.
 // ═══════════════════════════════════════════════════════════════════
 
 import React from "react";

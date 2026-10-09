@@ -1,6 +1,6 @@
 # CouponPilot — Documentation
 
-**Version 1.0.3** · Last updated: October 2026
+**Version 1.0.6** · Last updated: October 2026
 
 ---
 
@@ -119,7 +119,7 @@ CouponPilot is built for **solo entrepreneurs** and **small teams** who want to 
 
 ### Option A — Docker Compose (VPS) — Recommended
 
-This is the simplest deployment path. One command spins up both the app and PostgreSQL.
+This is the simplest deployment path. One command builds the app, starts PostgreSQL 16, and creates the database tables.
 
 **Step 1 — Clone the repository**
 
@@ -134,14 +134,17 @@ cd couponpilot
 cp .env.example .env
 ```
 
-Open `.env` in any editor and update:
+Open `.env` in any editor and set these three values:
 
 | Variable | What to set |
 |---|---|
-| `APP_SECRET` | A random 32+ character string (your master encryption key) |
-| `NEXT_PUBLIC_APP_URL` | Your domain, e.g. `https://coupons.example.com` |
+| `APP_SECRET` | A random secret. Generate one with `openssl rand -hex 32` |
+| `POSTGRES_PASSWORD` | Password for the bundled database. Generate one with `openssl rand -hex 16` (letters and digits only, it is placed inside a URL) |
+| `NEXT_PUBLIC_APP_URL` | Your domain, e.g. `https://coupons.example.com` (or `http://your-server-ip:3000` while testing) |
 
-> **⚠️ Important:** Never share your `APP_SECRET`. All sensitive data (network API keys, payout details) is encrypted with this key using AES-256-GCM.
+> **⚠️ Important:** Never share or change `APP_SECRET` after you start using the site. All sensitive data (network API keys, payout details) is encrypted with this key using AES-256-GCM, and data encrypted with an old key can no longer be read. Docker Compose refuses to start if `APP_SECRET` or `POSTGRES_PASSWORD` is empty.
+>
+> Docker Compose ignores `DATABASE_URL` in `.env` and connects to its own bundled database.
 
 **Step 3 — Launch**
 
@@ -149,20 +152,43 @@ Open `.env` in any editor and update:
 docker compose up -d --build
 ```
 
-This starts:
-- **`app`** — CouponPilot on port `3000`
-- **`db`** — PostgreSQL 16 on port `5432`
+The first build takes a few minutes. This starts:
 
-**Step 4 — Initialize database**
+- **`app`** — CouponPilot on port `3000` (set `APP_PORT=8080` in `.env` to use another host port)
+- **`db`** — PostgreSQL 16, reachable only from the app container (its port is not published to the internet)
+
+The app creates any missing database tables automatically every time it starts, and never deletes data. Check progress with `docker compose logs -f app`; it is ready when you see `Ready`.
+
+**Step 4 — Open the installer**
+
+Navigate to `http://your-server-ip:3000/install` and create your admin account. The installer locks itself as soon as an admin exists.
+
+**Step 5 — Load the demo catalog (optional)**
+
+Sign in at `/admin`, open **Import Sources**, and use the seed button to add 200 sample stores and thousands of sample coupons. You can skip this and add your own stores or sync Awin/CJ instead.
+
+#### Updating
 
 ```bash
-docker compose exec app npx prisma db push
-docker compose exec app npx prisma db seed
+git pull
+docker compose up -d --build
 ```
 
-**Step 5 — Open the installer**
+Your data lives in the `postgres_data` Docker volume and is kept. If you change `NEXT_PUBLIC_APP_URL` or `NEXT_PUBLIC_DEMO_MODE`, rebuild the same way, because those two values are built into the app.
 
-Navigate to `http://your-server-ip:3000/install` in your browser.
+#### Backups
+
+```bash
+docker compose exec -T db pg_dump -U couponpilot couponpilot > backup.sql
+```
+
+To restore into a fresh install, run `docker compose exec -T db psql -U couponpilot couponpilot < backup.sql`.
+
+Store logos downloaded by Awin/CJ syncs are kept in the separate `uploads` Docker volume, which is not part of `backup.sql`. They are plain image files, and running a sync again recreates them.
+
+#### HTTPS
+
+The app listens on plain HTTP. Put a reverse proxy such as Caddy or nginx in front of port `3000` for HTTPS, and set `NEXT_PUBLIC_APP_URL` to your `https://` address (then rebuild).
 
 ---
 
@@ -178,8 +204,9 @@ Import the CouponPilot codebase into Vercel and set these environment variables 
 
 | Variable | Value |
 |---|---|
-| `DATABASE_URL` | Your PostgreSQL connection string |
-| `APP_SECRET` | A random 32+ character string |
+| `DATABASE_URL` | Your PostgreSQL connection string (the pooled one, if your provider offers it) |
+| `DATABASE_URL_UNPOOLED` | The direct (non-pooled) connection string, used to create the tables. Same value as `DATABASE_URL` if your provider has only one |
+| `APP_SECRET` | A random secret: `openssl rand -hex 32` |
 | `NEXT_PUBLIC_APP_URL` | Your Vercel domain URL |
 | `CRON_SECRET` | A random bearer token for cron endpoints |
 
@@ -209,7 +236,8 @@ npm install
 
 ```bash
 cp .env.example .env
-# Edit .env with your database URL and secrets
+# Edit .env: set DATABASE_URL and DATABASE_URL_UNPOOLED (the same value for a
+# normal PostgreSQL server) and generate APP_SECRET with: openssl rand -hex 32
 ```
 
 **Step 3 — Generate Prisma client and push schema**
@@ -219,22 +247,16 @@ npx prisma generate
 npx prisma db push
 ```
 
-**Step 4 — Seed demo data (optional)**
-
-```bash
-npx prisma db seed
-```
-
-**Step 5 — Build and start**
+**Step 4 — Build and start**
 
 ```bash
 npm run build
 npm start
 ```
 
-**Step 6 — Open the installer**
+**Step 5 — Open the installer**
 
-Navigate to `http://localhost:3000/install`.
+Navigate to `http://localhost:3000/install` and create your admin account. To add sample stores and coupons, sign in and use the seed button under **Admin → Import Sources**.
 
 ---
 
@@ -263,6 +285,8 @@ All environment variables are documented in the `.env.example` file. Here is a c
 | Variable | Description | Example |
 |---|---|---|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/couponpilot` |
+| `DATABASE_URL_UNPOOLED` | Direct (non-pooled) connection string, used by `prisma db push` to create tables. Same value as `DATABASE_URL` unless your provider pools connections | `postgresql://user:pass@host:5432/couponpilot` |
+| `POSTGRES_PASSWORD` | Docker Compose only: password for the bundled database | output of `openssl rand -hex 16` |
 | `APP_SECRET` | Master encryption key (32+ chars) | `your_32_byte_master_secret_here` |
 | `NEXT_PUBLIC_APP_URL` | Public URL of your site | `https://coupons.example.com` |
 | `CRON_SECRET` | Bearer token for cron API routes | `your_cron_auth_token` |
@@ -1052,16 +1076,16 @@ Code: WS24T2280G11 · Expires in 6d
 
 ## 19. Theming & Customization
 
-### Default Seed Credentials
+### Demo Credentials
 
-When you seed the database (`npx prisma db seed`), the following default accounts are created:
+The public live demo uses these accounts. They exist only on the demo site:
 
 | Role | Email | Password | Access |
 |---|---|---|---|
 | **Admin** | `admin@couponpilot.com` | `password123` | Full admin dashboard (`/admin`) |
 | **Demo User** | `demo@example.com` | `password123` | Shopper account & wallet (`/account`) |
 
-> **Note:** If you install via the Web Installer (`/install`), you will set your own custom admin email and password during setup.
+> **Note:** Your own install does not create these accounts. Create your admin through the Web Installer (`/install`) and choose your own email and password.
 
 ### Design System
 
@@ -1186,15 +1210,30 @@ All admin endpoints are under `/api/admin/` and require the `admin` role.
 - **Cause:** The test suite deletes and re-seeds rows in whatever database `DATABASE_URL` points at.
 - **Fix:** Never run `npx vitest` against your live database. Since 1.0.2 the suite refuses to start unless the target database is local, has "test" in its name, or you explicitly set `ALLOW_DESTRUCTIVE_TESTS=true`.
 
+#### Docker: `required variable APP_SECRET is missing a value`
+
+- **Cause:** `.env` does not exist, or `APP_SECRET` / `POSTGRES_PASSWORD` is empty.
+- **Fix:** Run `cp .env.example .env` and fill in both values (`openssl rand -hex 32` and `openssl rand -hex 16`), then run `docker compose up -d --build` again.
+
+#### Docker: the app container keeps restarting
+
+- **Cause:** Usually a database or schema problem. Run `docker compose logs app` and read the first error.
+- **Fix:** If it says `password authentication failed`, the database was first created with a different `POSTGRES_PASSWORD`. Restore the original password in `.env`, or, on a fresh install with no data you need, remove the volumes with `docker compose down -v` and start again.
+
+#### Store logos added by a sync show as broken images (versions before 1.0.5)
+
+- **Cause:** Before 1.0.5, Next.js only served files in `public/` that existed when the server started, so logos downloaded during a sync returned 404 until the app was restarted.
+- **Fix:** Update to 1.0.5 or later. Logos are then served as soon as they are saved, with no restart. On an older version, restart the app once after the sync: `docker compose restart app`, or `pm2 restart <app-name>` on a Node.js server.
+
 #### "Database connection failed"
 
 - **Cause:** Invalid `DATABASE_URL` in `.env`
 - **Fix:** Verify your PostgreSQL connection string. For Docker, ensure the database container is running (`docker compose ps`).
 
-#### "APP_SECRET is required"
+#### "APP_SECRET is required" / password reset emails never arrive
 
-- **Cause:** Missing or empty `APP_SECRET` environment variable
-- **Fix:** Set a random 32+ character string in `.env`
+- **Cause:** Missing or empty `APP_SECRET` environment variable. It is used to encrypt stored credentials and to sign password reset links. From 1.0.6 there is no built-in default: without it, saving credentials fails and no reset email is sent. The forgot-password page still shows its normal confirmation message (so it cannot be used to find out which emails are registered), and the real cause is written to the server log as `APP_SECRET environment variable is not configured`.
+- **Fix:** Set a random secret in `.env` (generate one with `openssl rand -hex 32`) and restart the app. Do not change it afterwards: encrypted data and any reset links already sent depend on it.
 
 #### "Prisma client not generated"
 
@@ -1278,7 +1317,7 @@ CouponPilot is licensed under the **Envato Regular License**. Each license permi
 
 <div align="center">
 
-**CouponPilot v1.0.3** · Built with ❤️ using Next.js 16, TypeScript, Prisma & Tailwind
+**CouponPilot v1.0.6** · Built with ❤️ using Next.js 16, TypeScript, Prisma & Tailwind
 
 © 2026 CouponPilot. All rights reserved.
 

@@ -7,13 +7,14 @@
 // src/lib/seo/programmaticRoute.ts for the URL rules.
 // ═══════════════════════════════════════════════════════════════════
 
-import { cache } from "react";
+import { cache, Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { buildMetaTitle, buildMetaDescription } from "@/lib/seo/metaTemplates";
 import { parseProgrammaticSlug } from "@/lib/seo/programmaticRoute";
 import { StorePageClient } from "@/components/StorePageClient";
+import { StorePageSkeleton } from "@/components/StorePageSkeleton";
 import { Coupon, Store } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -66,15 +67,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+type DbStore = NonNullable<Awaited<ReturnType<typeof getStore>>>;
+
 export default async function ProgrammaticSeoPage({ params }: PageProps) {
   const { slug } = await params;
 
+  // Validate everything that can produce a 404 before anything streams, so
+  // an unknown store returns a real HTTP 404 rather than a soft 404.
   const parsed = parseProgrammaticSlug(slug);
   if (!parsed) notFound();
 
   const dbStore = await getStore(parsed.storeSlug);
   if (!dbStore || !dbStore.isActive) notFound();
 
+  return (
+    <Suspense fallback={<StorePageSkeleton />}>
+      <SeoStoreContent dbStore={dbStore} />
+    </Suspense>
+  );
+}
+
+async function SeoStoreContent({ dbStore }: { dbStore: DbStore }) {
   const dbCoupons = await getCoupons(dbStore.id);
 
   const store: Store = {

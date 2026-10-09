@@ -1,0 +1,25 @@
+# Keep secrets, dependencies and build output out of the Docker build context.
+# Without this, `COPY . .` copies your .env, node_modules, .next and .git into the image.
+
+.env
+.env.*
+!.env.example
+
+node_modules
+.next
+out
+dist
+coverage
+
+.git
+.gitignore
+.github
+.vercel
+.claude
+.DS_Store
+
+*.db
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

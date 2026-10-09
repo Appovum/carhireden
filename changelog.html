@@ -114,13 +114,113 @@ a{color:var(--accent);text-decoration:none}
 
 <div class="content">
 
-  <!-- ═══════════ v1.0.3 ═══════════ -->
+  <!-- ═══════════ v1.0.6 ═══════════ -->
   <div class="release latest">
+    <div class="release-dot"></div>
+    <div class="release-header">
+      <span class="release-version">1.0.6</span>
+      <span class="release-date">2026-10-09</span>
+      <span class="release-tag latest">Latest Release</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-security"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Security</div>
+      <ul class="change-list">
+        <li><strong>Password reset links no longer fall back to a built-in key</strong> — When <code>APP_SECRET</code> was not set, reset links were signed with a fixed string that is part of the published code, so anyone who had read the code could produce a link that passed the signature check. That fallback is removed. Without a secret, reset links are not created or accepted at all, and the cause is written to the server log. Installs that have <code>APP_SECRET</code> set are not affected and keep working.</li>
+        <li><strong>The forgot-password page still cannot be used to find registered emails</strong> — If the secret is missing, the page answers exactly as it does when an email is sent, so a configuration mistake does not reveal which addresses have accounts.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-changed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg></span> Changed</div>
+      <ul class="change-list">
+        <li><strong>One place reads the secret</strong> — Encryption at rest and password reset links now both use the same helper, so a missing <code>APP_SECRET</code> fails the same way everywhere. <code>NEXTAUTH_SECRET</code> and <code>JWT_SECRET</code> are still accepted if you already use one of them.</li>
+        <li><strong>Documentation</strong> — The <code>APP_SECRET</code> troubleshooting entry now explains the missing-secret behaviour and how to generate a secret.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════ v1.0.5 ═══════════ -->
+  <div class="release">
+    <div class="release-dot"></div>
+    <div class="release-header">
+      <span class="release-version">1.0.5</span>
+      <span class="release-date">2026-10-09</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-fixed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Fixed</div>
+      <ul class="change-list">
+        <li><strong>Store logos from a sync returned 404 until a restart</strong> — Awin and CJ syncs save store logos to <code>public/uploads/logos</code> while the app runs, but Next.js only serves files that existed when the server started, so every new logo showed as a broken image until the app was restarted. Files that appear later are now served on request by a new <code>/uploads</code> route. This applies to Docker, pm2/Node.js and any other server that runs <code>next start</code>; no restart is needed any more.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-security"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Security</div>
+      <ul class="change-list">
+        <li><strong>The new route only serves images from the uploads folder</strong> — It accepts image files only (<code>.webp</code>, <code>.png</code>, <code>.jpg</code>, <code>.gif</code>, <code>.avif</code>; no SVG), refuses dotfiles, path traversal and files over 10 MB, and follows symlinks before reading so a link cannot lead outside <code>public/uploads</code>.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-changed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg></span> Changed</div>
+      <ul class="change-list">
+        <li><strong>Documentation</strong> — The troubleshooting entry about logos needing a restart now applies to versions before 1.0.5, and the Docker backup section notes that logos live in the separate <code>uploads</code> volume rather than in the database dump.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════ v1.0.4 ═══════════ -->
+  <div class="release">
+    <div class="release-dot"></div>
+    <div class="release-header">
+      <span class="release-version">1.0.4</span>
+      <span class="release-date">2026-10-09</span>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-fixed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Fixed</div>
+      <ul class="change-list">
+        <li><strong>Missing store, category and coupon pages returned HTTP 200</strong> — A page for something that does not exist showed the 404 screen but answered with status 200 (a “soft 404”), which search engines treat as a real page. The cause was a <code>loading.tsx</code> that wrapped every page and sent the response before the lookup finished. <code>/store/…</code>, <code>/category/…</code>, <code>/coupon/…</code> and the monthly pages now return a real HTTP 404. Page skeletons are kept: the home skeleton applies only to the home page, and store pages stream theirs after the store is found.</li>
+        <li><strong>The Docker image did not build</strong> — The Dockerfile copies <code>.next/standalone</code>, which the app never produced. The Docker build now enables standalone output itself; Vercel and <code>next start</code> installs are unchanged.</li>
+        <li><strong>Docker could not create the database tables</strong> — The documented <code>docker compose exec app npx prisma db push</code> and <code>prisma db seed</code> steps could not run (no Prisma CLI in the image, no seed configured, and the required <code>DATABASE_URL_UNPOOLED</code> was never documented). The container now creates any missing tables on start and never deletes data.</li>
+        <li><strong>Builds without a database URL failed</strong> — Since 1.0.1, <code>next build</code> stopped when <code>DATABASE_URL</code> was not set, which broke Docker image builds and CI. A placeholder is now used during the build only; at runtime a missing <code>DATABASE_URL</code> still stops the app with a clear error.</li>
+        <li><strong>Docker Compose ignored your <code>.env</code></strong> — <code>docker-compose.yml</code> hardcoded its own values, so editing <code>APP_SECRET</code> had no effect. It now reads <code>.env</code>.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-security"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Security</div>
+      <ul class="change-list">
+        <li><strong>No shipped encryption key or database password</strong> — <code>docker-compose.yml</code> shipped a public <code>APP_SECRET</code> placeholder and a fixed database password. Both are now required from <code>.env</code>, and Compose refuses to start while they are empty. <code>APP_SECRET</code> and <code>CRON_SECRET</code> are empty in <code>.env.example</code> instead of looking configured.</li>
+        <li><strong>PostgreSQL is no longer exposed</strong> — The bundled database published port 5432 to the whole network with a known password. It is now reachable only from the app container.</li>
+        <li><strong>Build context no longer includes secrets</strong> — A new <code>.dockerignore</code> keeps <code>.env</code>, <code>.git</code> and <code>node_modules</code> out of the image build.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-added"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Added</div>
+      <ul class="change-list">
+        <li><strong>Docker hardening and options</strong> — Health checks for both containers, the database must be healthy before the app starts, a persistent volume for uploaded store logos, <code>APP_PORT</code> to change the host port, and the app runs as a non-root user.</li>
+        <li><strong>Docker documentation</strong> — Step-by-step setup, updating, backups (with a restore command), HTTPS, and troubleshooting, all tested against a clean install.</li>
+      </ul>
+    </div>
+
+    <div class="change-group">
+      <div class="change-group-title"><span class="badge badge-changed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 11-.57-8.38l5.67-5.67"/></svg></span> Changed</div>
+      <ul class="change-list">
+        <li><strong>Loading skeleton</strong> — Pages other than the home page and store pages no longer show the home-page skeleton while they load.</li>
+        <li><strong>Documentation and <code>.env.example</code></strong> — <code>DATABASE_URL_UNPOOLED</code> is documented and added to the example file, the SQLite mention is removed (PostgreSQL only), and the non-working <code>npx prisma db seed</code> step is replaced with the seed button in Admin → Import Sources. The “default seed credentials” section now says those accounts exist only on the public demo.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════════ v1.0.3 ═══════════ -->
+  <div class="release">
     <div class="release-dot"></div>
     <div class="release-header">
       <span class="release-version">1.0.3</span>
       <span class="release-date">2026-10-09</span>
-      <span class="release-tag latest">Latest Release</span>
     </div>
 
     <div class="change-group">

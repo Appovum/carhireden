@@ -4,16 +4,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 import crypto from "crypto";
+import { getAppSecret } from "./appSecret";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // Standard 96-bit IV for GCM
 
 function getMasterKey(): Buffer {
-  const secret = process.env.APP_SECRET || process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("[SECURITY CRITICAL] APP_SECRET environment variable is not configured.");
-  }
-  return crypto.createHash("sha256").update(secret).digest();
+  return crypto.createHash("sha256").update(getAppSecret()).digest();
 }
 
 /**

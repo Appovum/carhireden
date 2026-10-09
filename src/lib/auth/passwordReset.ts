@@ -5,17 +5,9 @@
 
 import crypto from "crypto";
 import { db } from "@/lib/db";
+import { getAppSecret } from "@/lib/security/appSecret";
 
 const TOKEN_EXPIRATION_MS = 60 * 60 * 1000; // 1 hour
-
-function getSecretKey(): string {
-  return (
-    process.env.APP_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    process.env.JWT_SECRET ||
-    "cp_default_secure_reset_secret_key_2026"
-  );
-}
 
 interface TokenPayload {
   userId: string;
@@ -41,7 +33,7 @@ export function createPasswordResetToken(user: { id: string; email: string; pass
   const payloadStr = JSON.stringify(payload);
   const payloadBase64 = Buffer.from(payloadStr, "utf8").toString("base64url");
 
-  const secret = getSecretKey();
+  const secret = getAppSecret();
   const hmac = crypto.createHmac("sha256", secret).update(payloadBase64).digest("hex");
 
   return `${payloadBase64}.${hmac}`;
@@ -67,7 +59,7 @@ export async function verifyPasswordResetToken(token: string): Promise<VerifyRes
   const [payloadBase64, hmacHex] = parts;
 
   // 1. Verify HMAC signature
-  const secret = getSecretKey();
+  const secret = getAppSecret();
   const expectedHmac = crypto.createHmac("sha256", secret).update(payloadBase64).digest("hex");
   
   const hmacBuffer = Buffer.from(hmacHex, "hex");

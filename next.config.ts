@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   devIndicators: false,
 
+  // The Dockerfile runs the app from .next/standalone, which only exists when
+  // this is set; it sets BUILD_STANDALONE=true for its build. Left off by
+  // default so Vercel and `next build && next start` (pm2, systemd) behave as
+  // before — `next start` does not work with a standalone build.
+  ...(process.env.BUILD_STANDALONE === "true" ? { output: "standalone" as const } : {}),
+
   async rewrites() {
     return [
       {

@@ -491,7 +491,7 @@ code:not(pre code) {
     CouponPilot
   </a>
   <div class="header-right">
-    <span class="version-badge">v1.0.3</span>
+    <span class="version-badge">v1.0.6</span>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg></button>
   </div>
 </header>
@@ -685,7 +685,7 @@ code:not(pre code) {
     <p>Docker for VPS, one-click for Vercel, or manual for anything else.</p>
 
     <h3>Option A — Docker Compose <span class="tag green">Recommended</span></h3>
-    <p>One command spins up the app and PostgreSQL together.</p>
+    <p>One command builds the app, starts PostgreSQL 16, and creates the database tables.</p>
 
     <h4>Step 1 — Clone the repository</h4>
     <div class="code-block">
@@ -697,13 +697,23 @@ cd couponpilot</code></pre>
     <h4>Step 2 — Configure environment</h4>
     <div class="code-block">
       <div class="code-header"><span class="code-lang">Bash</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
-      <pre><code>cp .env.example .env
-<span class="code-comment"># Edit .env — set APP_SECRET and NEXT_PUBLIC_APP_URL</span></code></pre>
+      <pre><code>cp .env.example .env</code></pre>
+    </div>
+    <p>Open <code>.env</code> and set these three values:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Variable</th><th>What to set</th></tr></thead>
+        <tbody>
+          <tr><td><code>APP_SECRET</code></td><td>A random secret. Generate one with <code>openssl rand -hex 32</code></td></tr>
+          <tr><td><code>POSTGRES_PASSWORD</code></td><td>Password for the bundled database. Generate one with <code>openssl rand -hex 16</code> (letters and digits only, it is placed inside a URL)</td></tr>
+          <tr><td><code>NEXT_PUBLIC_APP_URL</code></td><td>Your domain, e.g. <code>https://coupons.example.com</code> (or <code>http://your-server-ip:3000</code> while testing)</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <div class="callout callout-warning">
       <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-      <p><strong>Never share your APP_SECRET.</strong> All sensitive data (network API keys, payout details) is encrypted with this key using AES-256-GCM. Losing it means losing access to encrypted data.</p>
+      <p><strong>Never share or change your APP_SECRET after you start using the site.</strong> All sensitive data (network API keys, payout details) is encrypted with this key using AES-256-GCM, and data encrypted with an old key can no longer be read. Docker Compose refuses to start if <code>APP_SECRET</code> or <code>POSTGRES_PASSWORD</code> is empty, and it ignores <code>DATABASE_URL</code> in <code>.env</code> (it connects to its own bundled database).</p>
     </div>
 
     <h4>Step 3 — Launch</h4>
@@ -711,17 +721,32 @@ cd couponpilot</code></pre>
       <div class="code-header"><span class="code-lang">Bash</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
       <pre><code>docker compose up -d --build</code></pre>
     </div>
-    <p>This starts the <strong>app</strong> on port <code>3000</code> and <strong>PostgreSQL 16</strong> on port <code>5432</code>.</p>
+    <p>The first build takes a few minutes. This starts the <strong>app</strong> on port <code>3000</code> (set <code>APP_PORT</code> in <code>.env</code> to use another host port) and <strong>PostgreSQL 16</strong>, which is reachable only from the app container and is not published to the internet. The app creates any missing database tables automatically every time it starts and never deletes data. Check progress with <code>docker compose logs -f app</code>; it is ready when you see <code>Ready</code>.</p>
 
-    <h4>Step 4 — Initialize database</h4>
+    <h4>Step 4 — Open the installer</h4>
+    <p>Navigate to <code>http://your-server-ip:3000/install</code> and create your admin account. The installer locks itself as soon as an admin exists.</p>
+
+    <h4>Step 5 — Load the demo catalog (optional)</h4>
+    <p>Sign in at <code>/admin</code>, open <strong>Import Sources</strong>, and use the seed button to add 200 sample stores and thousands of sample coupons. You can skip this and add your own stores or sync Awin/CJ instead.</p>
+
+    <h4>Updating</h4>
     <div class="code-block">
       <div class="code-header"><span class="code-lang">Bash</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
-      <pre><code>docker compose exec app npx prisma db push
-docker compose exec app npx prisma db seed</code></pre>
+      <pre><code>git pull
+docker compose up -d --build</code></pre>
     </div>
+    <p>Your data lives in the <code>postgres_data</code> Docker volume and is kept. If you change <code>NEXT_PUBLIC_APP_URL</code> or <code>NEXT_PUBLIC_DEMO_MODE</code>, rebuild the same way, because those two values are built into the app.</p>
 
-    <h4>Step 5 — Open the installer</h4>
-    <p>Navigate to <code>http://your-server-ip:3000/install</code> in your browser.</p>
+    <h4>Backups</h4>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Bash</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+      <pre><code>docker compose exec -T db pg_dump -U couponpilot couponpilot &gt; backup.sql</code></pre>
+    </div>
+    <p>To restore into a fresh install: <code>docker compose exec -T db psql -U couponpilot couponpilot &lt; backup.sql</code>.</p>
+    <p>Store logos downloaded by Awin/CJ syncs are kept in the separate <code>uploads</code> Docker volume, which is not part of <code>backup.sql</code>. They are plain image files, and running a sync again recreates them.</p>
+
+    <h4>HTTPS</h4>
+    <p>The app listens on plain HTTP. Put a reverse proxy such as Caddy or nginx in front of port <code>3000</code> for HTTPS, and set <code>NEXT_PUBLIC_APP_URL</code> to your <code>https://</code> address (then rebuild).</p>
 
     <hr class="doc-divider">
 
@@ -736,8 +761,9 @@ docker compose exec app npx prisma db seed</code></pre>
       <table>
         <thead><tr><th>Variable</th><th>Value</th></tr></thead>
         <tbody>
-          <tr><td><code>DATABASE_URL</code></td><td>Your PostgreSQL connection string</td></tr>
-          <tr><td><code>APP_SECRET</code></td><td>A random 32+ character string</td></tr>
+          <tr><td><code>DATABASE_URL</code></td><td>Your PostgreSQL connection string (the pooled one, if your provider offers it)</td></tr>
+          <tr><td><code>DATABASE_URL_UNPOOLED</code></td><td>The direct (non-pooled) connection string, used to create the tables. Same value as <code>DATABASE_URL</code> if your provider has only one</td></tr>
+          <tr><td><code>APP_SECRET</code></td><td>A random secret: <code>openssl rand -hex 32</code></td></tr>
           <tr><td><code>NEXT_PUBLIC_APP_URL</code></td><td>Your Vercel domain URL</td></tr>
           <tr><td><code>CRON_SECRET</code></td><td>A random bearer token</td></tr>
         </tbody>
@@ -761,21 +787,20 @@ docker compose exec app npx prisma db seed</code></pre>
       <pre><code><span class="code-comment"># 1. Install dependencies</span>
 npm install
 
-<span class="code-comment"># 2. Configure environment</span>
+<span class="code-comment"># 2. Configure environment: set DATABASE_URL and DATABASE_URL_UNPOOLED</span>
+<span class="code-comment">#    (the same value for a normal PostgreSQL server) and generate</span>
+<span class="code-comment">#    APP_SECRET with: openssl rand -hex 32</span>
 cp .env.example .env
 
 <span class="code-comment"># 3. Generate Prisma client &amp; push schema</span>
 npx prisma generate
 npx prisma db push
 
-<span class="code-comment"># 4. Seed demo data (optional)</span>
-npx prisma db seed
-
-<span class="code-comment"># 5. Build and start</span>
+<span class="code-comment"># 4. Build and start</span>
 npm run build
 npm start</code></pre>
     </div>
-    <p>Then open <code>http://localhost:3000/install</code> to complete setup.</p>
+    <p>Then open <code>http://localhost:3000/install</code> to create your admin account. To add sample stores and coupons, sign in and use the seed button under <strong>Admin → Import Sources</strong>.</p>
   </section>
 
   <!-- ═══════════ 04 WEB INSTALLER ═══════════ -->
@@ -799,8 +824,8 @@ npm start</code></pre>
       <p>The installer is automatically disabled after setup is complete. It cannot be accessed again unless you reset the <code>installed</code> setting in the database.</p>
     </div>
 
-    <h3>Default Seed Credentials</h3>
-    <p>When you run <code>npx prisma db seed</code> or launch via Docker, the database is pre-seeded with these credentials:</p>
+    <h3>Demo Credentials</h3>
+    <p>The public live demo uses these accounts. They exist only on the demo site:</p>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Role</th><th>Email</th><th>Password</th><th>Access Level</th></tr></thead>
@@ -810,6 +835,7 @@ npm start</code></pre>
         </tbody>
       </table>
     </div>
+    <p>Your own install does not create these accounts. Create your admin through the installer at <code>/install</code> and choose your own email and password.</p>
   </section>
 
   <!-- ═══════════ 05 ENV VARIABLES ═══════════ -->
@@ -824,6 +850,8 @@ npm start</code></pre>
         <thead><tr><th>Variable</th><th>Description</th><th>Example</th></tr></thead>
         <tbody>
           <tr><td><code>DATABASE_URL</code></td><td>PostgreSQL connection string</td><td><code>postgresql://user:pass@host:5432/couponpilot</code></td></tr>
+          <tr><td><code>DATABASE_URL_UNPOOLED</code></td><td>Direct (non-pooled) connection string, used by <code>prisma db push</code> to create tables. Same value as <code>DATABASE_URL</code> unless your provider pools connections</td><td><code>postgresql://user:pass@host:5432/couponpilot</code></td></tr>
+          <tr><td><code>POSTGRES_PASSWORD</code></td><td>Docker Compose only: password for the bundled database</td><td>output of <code>openssl rand -hex 16</code></td></tr>
           <tr><td><code>APP_SECRET</code></td><td>Master encryption key (32+ chars)</td><td><code>your_32_byte_master_secret_here</code></td></tr>
           <tr><td><code>NEXT_PUBLIC_APP_URL</code></td><td>Public URL of your site</td><td><code>https://coupons.example.com</code></td></tr>
           <tr><td><code>CRON_SECRET</code></td><td>Bearer token for cron endpoints</td><td><code>your_cron_auth_token</code></td></tr>
@@ -1759,6 +1787,30 @@ npm start</code></pre>
     <div class="callout callout-warning">
       <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
       <div>
+        <p><strong>Docker: "required variable APP_SECRET is missing a value"</strong></p>
+        <p><code>.env</code> does not exist, or <code>APP_SECRET</code> / <code>POSTGRES_PASSWORD</code> is empty. Run <code>cp .env.example .env</code>, fill in both values (<code>openssl rand -hex 32</code> and <code>openssl rand -hex 16</code>), then run <code>docker compose up -d --build</code> again.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div>
+        <p><strong>Docker: the app container keeps restarting</strong></p>
+        <p>Run <code>docker compose logs app</code> and read the first error. If it says <code>password authentication failed</code>, the database was first created with a different <code>POSTGRES_PASSWORD</code>: restore the original password in <code>.env</code>, or, on a fresh install with no data you need, run <code>docker compose down -v</code> and start again.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div>
+        <p><strong>Store logos added by a sync show as broken images (versions before 1.0.5)</strong></p>
+        <p>Before 1.0.5, Next.js only served files in <code>public/</code> that existed when the server started, so logos downloaded during a sync returned 404 until the app was restarted. Update to 1.0.5 or later and they are served as soon as they are saved, with no restart. On an older version, restart the app once after the sync: <code>docker compose restart app</code>, or <code>pm2 restart &lt;app-name&gt;</code> on a Node.js server.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div>
         <p><strong>"Database connection failed"</strong></p>
         <p>Invalid <code>DATABASE_URL</code> in <code>.env</code>. For Docker, ensure the database container is running: <code>docker compose ps</code></p>
       </div>
@@ -1767,8 +1819,8 @@ npm start</code></pre>
     <div class="callout callout-warning">
       <div class="callout-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
       <div>
-        <p><strong>"APP_SECRET is required"</strong></p>
-        <p>Set a random 32+ character string in your <code>.env</code> file.</p>
+        <p><strong>"APP_SECRET is required" / password reset emails never arrive</strong></p>
+        <p><code>APP_SECRET</code> is missing or empty. It encrypts stored credentials and signs password reset links. From 1.0.6 there is no built-in default: without it, saving credentials fails and no reset email is sent. The forgot-password page still shows its normal confirmation message (so it cannot be used to find out which emails are registered), and the real cause is written to the server log as <code>APP_SECRET environment variable is not configured</code>. Set a random secret in <code>.env</code> (generate one with <code>openssl rand -hex 32</code>) and restart the app. Do not change it afterwards: encrypted data and reset links already sent depend on it.</p>
       </div>
     </div>
 
@@ -1851,7 +1903,7 @@ npm start</code></pre>
   <!-- FOOTER -->
   <footer class="doc-footer">
     <div class="footer-brand">CouponPilot</div>
-    <p>Version 1.0.3 · Built with Next.js 16, TypeScript, Prisma &amp; Tailwind</p>
+    <p>Version 1.0.6 · Built with Next.js 16, TypeScript, Prisma &amp; Tailwind</p>
     <p style="margin-top:8px;">© 2026 CouponPilot. All rights reserved.</p>
   </footer>
 

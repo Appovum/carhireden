@@ -1,32 +1,61 @@
-version: "3.8"
+# ═══════════════════════════════════════════════════════════════════
+# CouponPilot — Docker Compose (app + PostgreSQL 16)
+#
+#   cp .env.example .env        then edit .env (APP_SECRET, POSTGRES_PASSWORD,
+#                               NEXT_PUBLIC_APP_URL)
+#   docker compose up -d --build
+#
+# The database is only reachable from the app container; its port is
+# deliberately not published. Open http://<server>:3000/install when it is up.
+# ═══════════════════════════════════════════════════════════════════
 
 services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_DEMO_MODE: ${NEXT_PUBLIC_DEMO_MODE:-false}
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres_secure_password@db:5432/couponpilot
-      - APP_SECRET=couponpilot_super_secret_master_key_change_me!
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      NODE_ENV: production
+      # Required: there is deliberately no default, so a public placeholder
+      # can never end up as your encryption key.
+      APP_SECRET: "${APP_SECRET:?Set APP_SECRET in .env - generate one with: openssl rand -hex 32}"
+      # Point the app at the bundled database. These override anything in .env.
+      DATABASE_URL: "postgresql://couponpilot:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/couponpilot"
+      DATABASE_URL_UNPOOLED: "postgresql://couponpilot:${POSTGRES_PASSWORD}@db:5432/couponpilot"
     depends_on:
-      - db
-    restart: always
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/public/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/login"]
+      interval: 30s
+      timeout: 5s
+      start_period: 90s
+      retries: 3
+    restart: unless-stopped
 
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_secure_password
+      POSTGRES_USER: couponpilot
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
       POSTGRES_DB: couponpilot
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U couponpilot -d couponpilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  uploads:
